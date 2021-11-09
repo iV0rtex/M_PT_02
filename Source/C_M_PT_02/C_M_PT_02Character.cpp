@@ -2,6 +2,7 @@
 
 #include "C_M_PT_02Character.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
+#include "PlayerInventoryV2.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -11,6 +12,7 @@
 
 //////////////////////////////////////////////////////////////////////////
 // AC_M_PT_02Character
+
 
 AC_M_PT_02Character::AC_M_PT_02Character()
 {
@@ -45,6 +47,8 @@ AC_M_PT_02Character::AC_M_PT_02Character()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
+
+	Inventory = CreateDefaultSubobject<UPlayerInventoryV2>(TEXT("Inventory"));
 }
 
 //////////////////////////////////////////////////////////////////////////

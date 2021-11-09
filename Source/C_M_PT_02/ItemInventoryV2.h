@@ -9,7 +9,7 @@
 /**
  * 
  */
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class C_M_PT_02_API UItemInventoryV2 : public UObject
 {
 	GENERATED_BODY()
@@ -19,5 +19,8 @@ public:
 	int32 ID;
 	UPROPERTY(BlueprintReadWrite,EditAnywhere)
 	FString Name;
+
+	UPROPERTY(BlueprintReadWrite,EditAnywhere)
+	UTexture2D* Image;
 	
 };
