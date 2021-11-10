@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "ItemInventoryV2.h"
 #include "PlayerInventoryV2.generated.h"
 
-class UItemInventoryV2;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class C_M_PT_02_API UPlayerInventoryV2 : public UActorComponent
@@ -26,8 +26,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 protected:
+	UPROPERTY()
 	TArray<UItemInventoryV2*> Items;
-
 public:
 	UPROPERTY(BlueprintReadWrite,Category="Items",EditAnywhere)
 	int32 MaxXItems;
