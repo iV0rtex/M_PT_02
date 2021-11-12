@@ -76,7 +76,11 @@ void UWeapon::Fire()
 	UseAmmo();
 	WeaponTrace();
 
-	OnFired.Broadcast();
+	if(OnFired.IsBound())
+	{
+		OnFired.Broadcast();
+	}
+	
 	
 }
 
@@ -96,7 +100,10 @@ void UWeapon::Reload()
 	{
 		return;
 	}
-	OnStartReload.Broadcast();
+	if(OnStartReload.IsBound())
+	{
+		OnStartReload.Broadcast();
+	}
 	bIsReloading = true;
 	UseReloadAmmo();
 	
@@ -115,7 +122,10 @@ bool UWeapon::CanReload()
 void UWeapon::EndReload()
 {
 	bIsReloading = false;
-	OnReloaded.Broadcast();
+	if(OnReloaded.IsBound())
+	{
+		OnReloaded.Broadcast();
+	}
 	
 }
 
