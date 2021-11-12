@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "PlayerInventoryV2.h"
+#include "Weapon.h"
+#include "TestStaticMeshComponent.h"
 #include "C_M_PT_02Character.generated.h"
 
 UCLASS(config=Game)
@@ -69,6 +71,9 @@ private:
 public:
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	UPlayerInventoryV2* Inventory;
+	
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly)
+	UWeapon* WeaponComponent;
 	
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }

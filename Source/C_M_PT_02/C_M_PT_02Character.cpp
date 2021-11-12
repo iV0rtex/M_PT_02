@@ -49,6 +49,11 @@ AC_M_PT_02Character::AC_M_PT_02Character()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 
 	Inventory = CreateDefaultSubobject<UPlayerInventoryV2>(TEXT("Inventory"));
+	
+	USkeletalMeshComponent* MeshL = GetMesh();
+	
+	WeaponComponent = CreateDefaultSubobject<UWeapon>(TEXT("WeaponComponent"));
+	WeaponComponent->SetupAttachment(MeshL);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -78,6 +83,10 @@ void AC_M_PT_02Character::SetupPlayerInputComponent(class UInputComponent* Playe
 
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AC_M_PT_02Character::OnResetVR);
+
+	
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponComponent, &UWeapon::Fire);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponComponent, &UWeapon::Reload);
 }
 
 
