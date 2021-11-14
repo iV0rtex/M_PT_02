@@ -54,6 +54,14 @@ AC_M_PT_02Character::AC_M_PT_02Character()
 	
 	WeaponComponent = CreateDefaultSubobject<UWeapon>(TEXT("WeaponComponent"));
 	WeaponComponent->SetupAttachment(MeshL);
+
+	MaxHealth = 100.f;
+	Health = MaxHealth;
+	HealRate = 2.f;
+	HealForTik = 3.f;
+	Damage = 10.f;
+	YouMustDieDamageEffectRate = 1.f;
+	bYouMustDieEffect = false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -87,6 +95,175 @@ void AC_M_PT_02Character::SetupPlayerInputComponent(class UInputComponent* Playe
 	
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponComponent, &UWeapon::Fire);
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponComponent, &UWeapon::Reload);
+}
+
+void AC_M_PT_02Character::BeginPlay()
+{
+	Super::BeginPlay();
+
+	/*UCapsuleComponent* Capsule = GetCapsuleComponent();
+	Capsule->OnComponentBeginOverlap.AddDynamic(this,&AC_M_PT_02Character::OnComponentBeginOverlap);*/
+	
+	OnTookDamage.AddUFunction(this,"ActivatePeriodicHeal");
+	OnTookDamage.AddUFunction(this,"PrintDamage");
+
+	OnDied.AddUFunction(this,"PrintDiedStatus");
+	OnDied.AddUFunction(this,"DeactivatePeriodicHeal");
+	OnDied.AddUFunction(this,"DeactivatePeriodicDamage");
+	
+	OnHealed.AddUFunction(this,"DeactivatePeriodicHeal");
+	OnHealed.AddUFunction(this,"PrintHeal");
+	
+	OnActivatedHeal.AddUFunction(this,"PrintActivateHeal");
+	OnDeactivatedHeal.AddUFunction(this,"PrintDeactivateHeal");
+	OnActivatedPeriodicDamage.AddUFunction(this,"PrintActivatePeriodicalDamage");
+	OnDeactivatePeriodicDamage.AddUFunction(this,"PrintDeactivatePeriodicalDamage");
+
+}
+
+void AC_M_PT_02Character::OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+	
+}
+
+void AC_M_PT_02Character::OnHit()
+{
+	if(bYouMustDieEffect )
+	{
+		ActivatePeriodicDamage();
+		
+	}else
+	{
+		Hit();
+	}
+}
+
+
+
+void AC_M_PT_02Character::Hit()
+{
+	Health -= Damage;
+	if(Health < 0)
+	{
+		Health = 0;
+	}
+	if(Health == 0 && OnDied.IsBound())
+	{
+		OnDied.Broadcast();
+	}else if(OnTookDamage.IsBound())
+	{
+		OnTookDamage.Broadcast(Damage);
+	}
+}
+
+void AC_M_PT_02Character::OnHeal()
+{
+	Health += HealForTik;
+	if(Health > MaxHealth)
+	{
+		Health = MaxHealth;
+	}
+	if(OnHealed.IsBound())
+	{
+		OnHealed.Broadcast();
+	}
+}
+
+
+void AC_M_PT_02Character::ActivatePeriodicHeal()
+{
+	if(!GetWorldTimerManager().IsTimerActive(HealTimeHandle) && Health < MaxHealth && Health > 0)
+	{
+		GetWorld()->GetTimerManager().SetTimer(HealTimeHandle,this,&AC_M_PT_02Character::OnHeal,HealRate,true);
+
+		if(OnActivatedHeal.IsBound())
+		{
+			OnActivatedHeal.Broadcast();
+		}
+	}
+}
+
+void AC_M_PT_02Character::DeactivatePeriodicHeal()
+{
+	if(Health == MaxHealth || Health == 0)
+	{
+		GetWorldTimerManager().ClearTimer(HealTimeHandle);
+		if(OnDeactivatedHeal.IsBound())
+		{
+			OnDeactivatedHeal.Broadcast();
+		}
+	}
+}
+
+void AC_M_PT_02Character::ActivatePeriodicDamage()
+{
+	if(!GetWorldTimerManager().IsTimerActive(YouMustDieTimeHandle))
+	{
+		GetWorld()->GetTimerManager().SetTimer(YouMustDieTimeHandle,this,&AC_M_PT_02Character::Hit,YouMustDieDamageEffectRate,true);
+		if(OnActivatedPeriodicDamage.IsBound())
+		{
+			OnActivatedPeriodicDamage.Broadcast();
+		}
+	}
+	
+}
+
+void AC_M_PT_02Character::DeactivatePeriodicDamage()
+{
+	if(Health == 0 || (!bYouMustDieEffect && GetWorldTimerManager().IsTimerActive(YouMustDieTimeHandle)))
+	{
+		GetWorldTimerManager().ClearTimer(YouMustDieTimeHandle);
+		if(OnDeactivatePeriodicDamage.IsBound())
+		{
+			OnDeactivatePeriodicDamage.Broadcast();
+		}
+	}
+}
+
+void AC_M_PT_02Character::PrintDamage(const float LDamage) const
+{
+	const FString Message = "You took  " + FString::SanitizeFloat(LDamage) + " Damage";
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, Message);
+}
+
+void AC_M_PT_02Character::PrintHeal() const
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Took Heal")));
+}
+
+void AC_M_PT_02Character::PrintActivateHeal() const
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Heal Activated")));
+}
+
+void AC_M_PT_02Character::PrintDeactivateHeal() const
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Heal Deactivated")));
+}
+
+void AC_M_PT_02Character::PrintActivatePeriodicalDamage() const
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, FString::Printf(TEXT("Pereodical damage Activate")));
+}
+
+void AC_M_PT_02Character::PrintDeactivatePeriodicalDamage() const
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, FString::Printf(TEXT("Pereodical damage DEactivate")));
+}
+
+void AC_M_PT_02Character::PrintDiedStatus() const
+{
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("YOU DIED")));
+}
+
+float AC_M_PT_02Character::GetHealth() const
+{
+	return Health;
+}
+
+float AC_M_PT_02Character::GetMaxHealth() const
+{
+	return MaxHealth;
 }
 
 
