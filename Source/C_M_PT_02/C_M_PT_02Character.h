@@ -6,8 +6,15 @@
 #include "GameFramework/Character.h"
 #include "PlayerInventoryV2.h"
 #include "Weapon.h"
-#include "TestStaticMeshComponent.h"
 #include "C_M_PT_02Character.generated.h"
+
+DECLARE_EVENT_OneParam(AC_M_PT_02Character,FOnTookDamage,float);
+DECLARE_EVENT(AC_M_PT_02Character,FOnDied);
+DECLARE_EVENT(AC_M_PT_02Character,FOnHealed);
+DECLARE_EVENT(AC_M_PT_02Character,FOnActivatedHeal);
+DECLARE_EVENT(AC_M_PT_02Character,FOnDeactivatedHeal);
+DECLARE_EVENT(AC_M_PT_02Character,FOnActivatedPeriodicDamage);
+DECLARE_EVENT(AC_M_PT_02Character,FOnDeactivatePeriodicDamage);
 
 UCLASS(config=Game)
 class AC_M_PT_02Character : public ACharacter
@@ -65,19 +72,77 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
 
-private:
+	virtual void BeginPlay() override;
+	
+	UFUNCTION()
+	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	UFUNCTION(BlueprintCallable)
+	void OnHit();
+	
+	UFUNCTION()
+	void Hit();
+
+	UFUNCTION()
+	void OnHeal();
+	UFUNCTION()
+	void ActivatePeriodicHeal();
+	UFUNCTION()
+	void DeactivatePeriodicHeal();
+	UFUNCTION()
+	void ActivatePeriodicDamage();
+	UFUNCTION()
+	void DeactivatePeriodicDamage();
+	UFUNCTION()
+	void PrintDamage(const float LDamage) const;
+	UFUNCTION()
+	void PrintHeal() const;
+	UFUNCTION()
+	void PrintActivateHeal() const;
+	UFUNCTION()
+	void PrintDeactivateHeal() const;
+	UFUNCTION()
+	void PrintActivatePeriodicalDamage() const;
+	UFUNCTION()
+	void PrintDeactivatePeriodicalDamage() const;
+	UFUNCTION()
+	void PrintDiedStatus() const;
+
+	
+	FOnHealed OnHealed;
+	FOnActivatedHeal OnActivatedHeal;
+	FOnDeactivatedHeal OnDeactivatedHeal;
+	FOnActivatedPeriodicDamage OnActivatedPeriodicDamage;
+	FOnDeactivatePeriodicDamage OnDeactivatePeriodicDamage;
+	FTimerHandle HealTimeHandle;
+	FTimerHandle YouMustDieTimeHandle;
+
+	float MaxHealth;
+	float Health;
+	float HealRate;
+	float HealForTik;
+	float Damage;
+	float YouMustDieDamageEffectRate;
 	
 
 public:
+	FOnTookDamage OnTookDamage;
+	FOnDied OnDied;
+	
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
 	UPlayerInventoryV2* Inventory;
 	
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly)
 	UWeapon* WeaponComponent;
 	
+	UPROPERTY(BlueprintReadWrite)
+	bool bYouMustDieEffect;
+	
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	float GetHealth() const;
+	float GetMaxHealth() const;
 };
 
