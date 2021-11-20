@@ -84,56 +84,67 @@ void APawnWithCamera::Jump()
 	
 }
 
+void APawnWithCamera::ZoomTickAction(const float DeltaTime)
+{
+	if(bZoomingIn)
+	{
+		ZoomFactor += DeltaTime/.5f;
+	}else
+	{
+		ZoomFactor -= DeltaTime/.25f;
+	}
+	ZoomFactor = FMath::Clamp<float>(ZoomFactor,0.f,1.f);
+		
+	CameraComp->FieldOfView = FMath::Lerp<float>(90.f,60.f,ZoomFactor);
+	SpringArmComponent->TargetArmLength = FMath::Lerp<float>(400.f,300.f,ZoomFactor);
+}
+
+void APawnWithCamera::MoveTickAction(const float DeltaTime)
+{
+	if(!MovementInput.IsZero())
+	{
+		MovementInput = MovementInput.GetSafeNormal() * PawnSpeed;
+		FVector NewLocation = GetActorLocation();
+		NewLocation += GetActorForwardVector() * MovementInput.X * DeltaTime;
+		NewLocation += GetActorRightVector() * MovementInput.Y * DeltaTime;
+		SetActorLocation(NewLocation);
+	}
+}
+
+void APawnWithCamera::JumpTickAction(const float DeltaTime)
+{
+	if(bJump)
+	{
+		FVector NewLocation = GetActorLocation();
+		NewLocation += GetActorUpVector() * PawnSpeed * DeltaTime;
+		CurrentJumpPower += GetActorUpVector().Z * PawnSpeed * DeltaTime;
+		SetActorLocation(NewLocation);
+			
+		if(CurrentJumpPower >= JumpPower)
+		{
+			bJump = false;
+		}
+		CurrentJumpPower = FMath::Clamp<float>(CurrentJumpPower,0.f,JumpPower);
+	}else if(CurrentJumpPower > 0.f)
+	{
+		FVector NewLocation = GetActorLocation();
+		NewLocation -= GetActorUpVector() * PawnSpeed * DeltaTime;
+		CurrentJumpPower -= GetActorUpVector().Z * PawnSpeed * DeltaTime;
+		SetActorLocation(NewLocation);
+			
+		CurrentJumpPower = FMath::Clamp<float>(CurrentJumpPower,0.f,JumpPower);
+	}
+	
+}
+
 // Called every frame
 void APawnWithCamera::Tick(const float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
-	{
-		if(bZoomingIn)
-		{
-			ZoomFactor += DeltaTime/.5f;
-		}else
-		{
-			ZoomFactor -= DeltaTime/.25f;
-		}
-		ZoomFactor = FMath::Clamp<float>(ZoomFactor,0.f,1.f);
-		
-		CameraComp->FieldOfView = FMath::Lerp<float>(90.f,60.f,ZoomFactor);
-		SpringArmComponent->TargetArmLength = FMath::Lerp<float>(400.f,300.f,ZoomFactor);
-	}
-	
-	{
-		if(!MovementInput.IsZero())
-		{
-			MovementInput = MovementInput.GetSafeNormal() * PawnSpeed;
-			FVector NewLocation = GetActorLocation();
-			NewLocation += GetActorForwardVector() * MovementInput.X * DeltaTime;
-			NewLocation += GetActorRightVector() * MovementInput.Y * DeltaTime;
-			SetActorLocation(NewLocation);
-		}
-		
-		if(bJump)
-		{
-			FVector NewLocation = GetActorLocation();
-			NewLocation += GetActorUpVector() * PawnSpeed * DeltaTime;
-			CurrentJumpPower += GetActorUpVector().Z * PawnSpeed * DeltaTime;
-			SetActorLocation(NewLocation);
-			
-			if(CurrentJumpPower >= JumpPower)
-			{
-				bJump = false;
-			}
-		}else if(CurrentJumpPower > 0.f)
-		{
-			FVector NewLocation = GetActorLocation();
-			NewLocation -= GetActorUpVector() * PawnSpeed * DeltaTime;
-			CurrentJumpPower -= GetActorUpVector().Z * PawnSpeed * DeltaTime;
-			SetActorLocation(NewLocation);
-			
-			CurrentJumpPower = FMath::Clamp<float>(CurrentJumpPower,0.f,JumpPower);
-		}
-	}
+	ZoomTickAction(DeltaTime);
+	MoveTickAction(DeltaTime);
+	JumpTickAction(DeltaTime);
 
 }
 

@@ -45,7 +45,10 @@ protected:
 	void ZoomIn();
 	void ZoomOut();
 	void Jump();
-	
+
+	void ZoomTickAction(const float DeltaTime);
+	void MoveTickAction(const float DeltaTime);
+	void JumpTickAction(const float DeltaTime);
 
 public:	
 	// Called every frame
