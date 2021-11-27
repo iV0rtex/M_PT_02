@@ -9,6 +9,15 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDetectedColor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDefaultColor);
+DECLARE_EVENT(ABasePawn,FOnTookDamage);
+
+USTRUCT(BlueprintType)
+struct FSHealth
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere)
+	float Health;	
+};
 
 UCLASS()
 class C_M_PT_02_API ABasePawn : public APawn
@@ -36,6 +45,10 @@ protected:
 	void SetPlayerDetectedStatus();
 	UFUNCTION()
 	void UnsetPlayerDetectedStatus();
+	UFUNCTION()
+	void PrintHealth() const;
+	
+	FSHealth SHealth;
 
 public:	
 	// Called every frame
@@ -51,5 +64,9 @@ public:
 	FOnDetectedColor OnDetectedColor;
 	UPROPERTY(BlueprintAssignable)
 	FOnDefaultColor OnDefaultColor;
+
+	FOnTookDamage OnTookDamage;
+
+	void Damage( float Damage);
 
 };

@@ -4,7 +4,15 @@
 #include "ShooterMode.h"
 
 #include "Turret.h"
+#include "Engine/TargetPoint.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
+
+AShooterMode::AShooterMode()
+{
+	GeneratedCubeAmount = 5;
+	GeneratedActorsLifeTime = 5.f;
+}
 
 void AShooterMode::BeginPlay()
 {
@@ -19,9 +27,77 @@ void AShooterMode::BeginPlay()
 		{
 			Turret->OnTurretKilled.AddUFunction(this,"OnTurretKilled");	
 		}
+	}
+
+	GenerateCubes();
+	GetWorld()->GetTimerManager().SetTimer(GeneratedActorsLifeTimeHandle,this,&ThisClass::DestroyCubes,GeneratedActorsLifeTime,false);
+	
+}
+
+void AShooterMode::GenerateCubes()
+{
+	const int32 GCubeAmount = FMath::Clamp<float>(GeneratedCubeAmount,1,100);
+	for(int32 i = 0 ; i < GCubeAmount; i++)
+	{
+		FVector Position = GetRandomPosition();
+		FRotator Rotation;
+		AActorWithStatus * NewActor = GetWorld()->SpawnActor<AActorWithStatus>(Position,Rotation);
 		
+		GeneratedActors.Add(NewActor);
 	}
 }
+
+void AShooterMode::DestroyCubes()
+{
+	for(AActorWithStatus * GeneratedActor : GeneratedActors)
+	{
+		GeneratedActor->Destroy();
+	}
+	GeneratedActors.Empty();
+}
+
+ATargetPoint* AShooterMode::GetFirstTargetPoint() const
+{
+	return GetTargetPointByTagName(TEXT("firstLocation"));
+}
+
+ATargetPoint* AShooterMode::GetSecondTargetPoint() const
+{
+	return GetTargetPointByTagName(TEXT("secondLocation"));
+}
+
+ATargetPoint* AShooterMode::GetTargetPointByTagName(const FName Name) const
+{
+	TArray<AActor *> TargetActors;
+	ATargetPoint * TargetPoint = nullptr;
+	UGameplayStatics::GetAllActorsOfClassWithTag(this, ATargetPoint::StaticClass(),Name,TargetActors);
+	for (AActor * TargetActor : TargetActors)
+	{
+		TargetPoint = Cast<ATargetPoint>(TargetActor);
+	}
+	return TargetPoint;
+}
+
+FVector AShooterMode::GetRandomPosition() const
+{
+	FVector Position;
+	ATargetPoint * FirstTargetPoint = GetFirstTargetPoint();
+	ATargetPoint * SecondTargetPoint = GetSecondTargetPoint();
+	if(!FirstTargetPoint || !SecondTargetPoint)
+	{
+		return Position;
+	}
+	
+	FVector FirstPointLocation  = FirstTargetPoint->GetActorLocation();
+	FVector SecondPointLocation  = SecondTargetPoint->GetActorLocation();
+
+	Position.X = UKismetMathLibrary::RandomFloatInRange(FirstPointLocation.X,SecondPointLocation.X);
+	Position.Y = UKismetMathLibrary::RandomFloatInRange(FirstPointLocation.Y,SecondPointLocation.Y);
+	Position.Z = FirstPointLocation.Z;
+
+	return Position;
+}
+
 
 void AShooterMode::OnTurretKilled()
 {
