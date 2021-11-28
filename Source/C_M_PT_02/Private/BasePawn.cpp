@@ -25,7 +25,8 @@ ABasePawn::ABasePawn()
 
 	MovementComponent = CreateDefaultSubobject<UPawnMovementComponent, UFloatingPawnMovement>(TEXT("MovementComponent"));
 	MovementComponent->SetUpdatedComponent(SphereComponent);
-	
+
+	SHealth.Health = 100;
 }
 
 // Called when the game starts or when spawned
@@ -47,6 +48,8 @@ void ABasePawn::BeginPlay()
 		}
 		
 	}
+
+	OnTookDamage.AddUFunction(this,"PrintHealth");
 	
 }
 
@@ -78,6 +81,12 @@ void ABasePawn::UnsetPlayerDetectedStatus()
 	OnDefaultColor.Broadcast();
 }
 
+void ABasePawn::PrintHealth() const
+{
+	const FString Message = FString::Printf(TEXT("Health:%f"),SHealth.Health);
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, Message);
+}
+
 
 // Called every frame
 void ABasePawn::Tick(float DeltaTime)
@@ -96,5 +105,15 @@ void ABasePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	PlayerInputComponent->BindAxis("Turn",this,&APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp",this,&APawn::AddControllerPitchInput);
 
+}
+
+void ABasePawn::Damage(const float Damage)
+{
+	SHealth.Health -= Damage;
+	if(SHealth.Health < 0)
+	{
+		SHealth.Health = 0;
+	}
+	OnTookDamage.Broadcast();
 }
 
