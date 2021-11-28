@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "C_M_PT_02Character.h"
+
+#include "GameplayDebuggerTypes.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "PlayerInventoryV2.h"
 #include "Camera/CameraComponent.h"

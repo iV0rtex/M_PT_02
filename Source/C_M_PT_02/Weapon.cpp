@@ -1,10 +1,28 @@
 #include "Weapon.h"
+
+#include "GameplayDebuggerTypes.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 UWeapon::UWeapon()
 {
 	InitParams();
 	
+}
+
+void UWeapon::Reload_Implementation()
+{
+	if(!CanReload())
+	{
+		return;
+	}
+	if(OnStartReload.IsBound())
+	{
+		OnStartReload.Broadcast();
+	}
+	bIsReloading = true;
+	UseReloadAmmo();
+	
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&UWeapon::EndReload,ReloadDuration);
 }
 
 void UWeapon::PrintStartReloadAction() const
@@ -52,22 +70,21 @@ void UWeapon::InitActions()
 	OnStartReload.AddUFunction(this,"PrintStartReloadAction");
 }
 
-void UWeapon::WeaponTrace() const
+bool UWeapon::CanFire() const
 {
-	const FName Name;
-	const TArray<AActor*> Array;
-	const FVector StartSocketLocation = GetSocketLocation(MuzzleSocketName);
-	FHitResult OutHit;
-	FVector EndSocketLocation = GetSocketLocation(MuzzleSocketName);
-	FVector Forward = this->GetForwardVector();
-	
-	Forward = Forward * Range;
-	EndSocketLocation = EndSocketLocation + Forward;
-	
-	UKismetSystemLibrary::LineTraceSingleByProfile(this,StartSocketLocation,EndSocketLocation,Name,false,Array,EDrawDebugTrace::ForDuration,OutHit,true,FLinearColor::Red,FLinearColor::Green,0.8f);
+	if(!GetOwner()->HasAuthority())
+	{
+		return false;
+	}
+	return CurrentAmmoInClip > 0 && !bIsReloading;
 }
 
-void UWeapon::Fire()
+void UWeapon::UseAmmo_Implementation()
+{
+	CurrentAmmoInClip--;
+}
+
+void UWeapon::Fire_Implementation()
 {
 	if(!CanFire())
 	{
@@ -80,38 +97,14 @@ void UWeapon::Fire()
 	{
 		OnFired.Broadcast();
 	}
-	
-	
-}
-
-bool UWeapon::CanFire() const
-{
-	return CurrentAmmoInClip > 0 && !bIsReloading;
-}
-
-void UWeapon::UseAmmo()
-{
-	CurrentAmmoInClip--;
-}
-
-void UWeapon::Reload()
-{
-	if(!CanReload())
-	{
-		return;
-	}
-	if(OnStartReload.IsBound())
-	{
-		OnStartReload.Broadcast();
-	}
-	bIsReloading = true;
-	UseReloadAmmo();
-	
-	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&UWeapon::EndReload,ReloadDuration);
 }
 
 bool UWeapon::CanReload()
 {
+	if(!GetOwner()->HasAuthority())
+	{
+		return false;
+	}
 	if(CurrentAmmoInClip == AmmoPerClip || CurrentAmmo <= 0 || bIsReloading)
 	{
 		return false;
@@ -119,17 +112,17 @@ bool UWeapon::CanReload()
 	return true;
 }
 
-void UWeapon::EndReload()
+void UWeapon::EndReload_Implementation()
 {
 	bIsReloading = false;
 	if(OnReloaded.IsBound())
 	{
 		OnReloaded.Broadcast();
 	}
-	
 }
 
-void UWeapon::UseReloadAmmo()
+
+void UWeapon::UseReloadAmmo_Implementation()
 {
 	int32 AmmoForReload = AmmoPerClip - CurrentAmmoInClip;
 	if(CurrentAmmo < AmmoForReload)
@@ -142,5 +135,21 @@ void UWeapon::UseReloadAmmo()
 	}
 
 	CurrentAmmoInClip += AmmoForReload;
+}
+
+void UWeapon::WeaponTrace_Implementation() const
+{
+	const FName Name;
+	const TArray<AActor*> Array;
+	const FVector StartSocketLocation = GetSocketLocation(MuzzleSocketName);
+	FHitResult OutHit;
+	FVector EndSocketLocation = GetSocketLocation(MuzzleSocketName);
+	FVector Forward = this->GetForwardVector();
+	
+	Forward = Forward * Range;
+	EndSocketLocation = EndSocketLocation + Forward;
+	
+	UKismetSystemLibrary::LineTraceSingleByProfile(this,StartSocketLocation,EndSocketLocation,Name,false,Array,EDrawDebugTrace::ForDuration,OutHit,true,FLinearColor::Red,FLinearColor::Green,0.8f);
+	
 }
 
