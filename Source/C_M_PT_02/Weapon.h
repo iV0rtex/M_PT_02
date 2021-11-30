@@ -23,50 +23,59 @@ class C_M_PT_02_API UWeapon : public UStaticMeshComponent, public IWeaponReloadI
 	void InitParams();
 	void InitActions();
 
-public:
+protected:
 	UPROPERTY()
 	FName MuzzleSocketName;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	int32 Range;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	int32 MaxAmmo;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	int32 AmmoPerClip;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	float ReloadDuration;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	float Damage;
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	int32 CurrentAmmo;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	int32 CurrentAmmoInClip;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY()
 	bool bIsReloading;
-
 	
-	UFUNCTION(BlueprintCallable)
-	void Fire();
 	bool CanFire() const;
+	
+	UFUNCTION(Server,Reliable)
 	void UseAmmo();
 
-	UFUNCTION(BlueprintCallable)
-	virtual void Reload() override;
-	virtual bool CanReload() override;
-	void EndReload();
-	void UseReloadAmmo();
 	
+	virtual bool CanReload() override;
+	UFUNCTION(Server,Unreliable)
+	void EndReload();
+	UFUNCTION(Server,Unreliable)
+	void UseReloadAmmo();
+
+	UFUNCTION(NetMulticast,Reliable)
 	void WeaponTrace() const;
 
 	FOnReloaded OnReloaded;
 	FOnStartReload OnStartReload;
 	FOnFired OnFired;
 
-	UFUNCTION(BlueprintCallable)
+public:
+	
+	UFUNCTION(Server,Reliable)
+	void Fire();
+	UFUNCTION(Server,Reliable)
+	virtual void Reload() override;
+	
+	UFUNCTION()
 	void PrintStartReloadAction() const;
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void PrintEndReloadAction() const;
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION()
 	void PrintFireAction() const;
+	
 	virtual void BeginPlay() override;
 };
