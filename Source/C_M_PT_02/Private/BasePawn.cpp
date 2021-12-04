@@ -27,6 +27,9 @@ ABasePawn::ABasePawn()
 	MovementComponent->SetUpdatedComponent(SphereComponent);
 
 	SHealth.Health = 100;
+	DetectTime = 5.f;
+	LoosTime = 10.f;
+	bIsDetected = false;
 }
 
 // Called when the game starts or when spawned
@@ -36,18 +39,8 @@ void ABasePawn::BeginPlay()
 
 	WatchThroughActor = this;
 
-	TArray<AActor*> CameraList;
-	UGameplayStatics::GetAllActorsOfClass(this,ASpyCameraActor::StaticClass(),CameraList);
-	for(AActor * CameraActor : CameraList)
-	{
-		ASpyCameraActor * Camera = Cast<ASpyCameraActor>(CameraActor);
-		if(Camera)
-		{
-			Camera->OnPlayerDetected.AddUFunction(this,"SetPlayerDetectedStatus");
-			Camera->OnPlayerGone.AddUFunction(this,"UnsetPlayerDetectedStatus");	
-		}
-		
-	}
+	OnCameraDetected.AddUFunction(this,"SetPlayerDetectedStatus");
+	OnDetectionGone.AddUFunction(this,"UnsetPlayerDetectedStatus");	
 
 	OnTookDamage.AddUFunction(this,"PrintHealth");
 	
@@ -115,5 +108,67 @@ void ABasePawn::Damage(const float Damage)
 		SHealth.Health = 0;
 	}
 	OnTookDamage.Broadcast();
+}
+
+void ABasePawn::CameraTryToDetect(AActor* Detector)
+{
+	//////////////////////////////////////////////////////////TODO: move logic to controller
+	APlayerController * PC = GetWorld()->GetFirstPlayerController(); 
+	FViewTargetTransitionParams TransitionParams;
+	TransitionParams.BlendTime = 2.f;
+	
+	PC->SetViewTarget(Detector,TransitionParams);
+	WatchThroughActor = Detector;
+	////////////////////////////////////////////////////////
+	DetectionTimerAction();
+}
+
+void ABasePawn::CameraLost(AActor* Detector)
+{
+	////////////////////////////////////////TODO: move logic to controller (Controller must inherit CameraDetectableInterface). (If Ai possess this actor and is in a camera view Player's camera view will be changed as well it is not correct) 
+	APlayerController * PC = GetWorld()->GetFirstPlayerController();
+	FViewTargetTransitionParams TransitionParams;
+	TransitionParams.BlendTime = 2.f;
+
+	PC->SetViewTarget(this,TransitionParams);
+	WatchThroughActor = this;
+	////////////////////////////////////
+	LoosingTimerAction();
+
+	//PC->PlayerCameraManager->OnBlendComplete().AddUObject(this, &ABasePawn::CameraBlendComplete);
+}
+void ABasePawn::DetectionTimerAction()
+{ 
+	if(GetWorldTimerManager().IsTimerActive(LossTimeHandle))
+	{
+		GetWorldTimerManager().ClearTimer(LossTimeHandle);
+	}
+	if(!bIsDetected)
+	{
+		GetWorld()->GetTimerManager().SetTimer(DetectTimeHandle,this,&ABasePawn::PlayerDetected,DetectTime,false);
+	}
+}
+
+void ABasePawn::LoosingTimerAction()
+{
+	if(GetWorldTimerManager().IsTimerActive(DetectTimeHandle))
+	{
+		GetWorldTimerManager().ClearTimer(DetectTimeHandle);
+	}
+	if(bIsDetected)
+	{
+		GetWorld()->GetTimerManager().SetTimer(LossTimeHandle,this,&ABasePawn::PlayerGone,LoosTime,false);
+	}
+}
+void ABasePawn::PlayerDetected()
+{
+	bIsDetected = true;
+	OnCameraDetected.Broadcast();
+	
+}
+void ABasePawn::PlayerGone()
+{
+	bIsDetected = false;
+	OnDetectionGone.Broadcast();
 }
 
