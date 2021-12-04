@@ -65,9 +65,9 @@ protected:
 
 public:
 	
-	UFUNCTION(Server,Reliable)
+	UFUNCTION(Server,Reliable, WithValidation)
 	void Fire();
-	UFUNCTION(Server,Reliable)
+	UFUNCTION(Server,Reliable, WithValidation)
 	virtual void Reload() override;
 	
 	UFUNCTION()
