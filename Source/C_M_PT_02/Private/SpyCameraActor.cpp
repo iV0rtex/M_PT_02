@@ -13,10 +13,6 @@ ASpyCameraActor::ASpyCameraActor()
 	BoxComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	BoxComp->SetCollisionResponseToChannel(ECC_Pawn,ECR_Overlap);
 	BoxComp->SetupAttachment(GetRootComponent());
-
-	DetectTime = 5.f;
-	LoosTime = 10.f;
-	bIsPlayerDetected = false;
 	
 }
 
@@ -32,75 +28,34 @@ void ASpyCameraActor::BeginPlay()
 void ASpyCameraActor::BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	APlayerController * PC = GetWorld()->GetFirstPlayerController();
-
-	APawn * Pawn = PC->GetPawn();
-	ABasePawn * BPawn = Cast<ABasePawn>(Pawn);
-	if(!BPawn)
+	ICameraDetectableInterface * DetectablePawn = Cast<ICameraDetectableInterface>(OtherActor);
+	
+	ICameraDetectableInterface * DetectableController = Cast<ICameraDetectableInterface>(OtherActor->GetInstigatorController());
+	if(DetectablePawn)
 	{
-		return;
+		DetectablePawn->CameraTryToDetect(this);
 	}
-	BPawn->WatchThroughActor = this;
-
-	FViewTargetTransitionParams TransitionParams;
-	TransitionParams.BlendTime = 2.f;
-	
-	DetectionTimerAction();
-	
-	PC->SetViewTarget(this,TransitionParams);
+	if(DetectableController)
+	{
+		DetectableController->CameraTryToDetect(this);
+	}
 }
 
 void ASpyCameraActor::BoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	APlayerController * PC = GetWorld()->GetFirstPlayerController();
-	APawn * Pawn = PC->GetPawn();
-	ABasePawn * BPawn = Cast<ABasePawn>(Pawn);
-	if(!BPawn)
-	{
-		return;
-	}
-	BPawn->WatchThroughActor = BPawn;
-
-	FViewTargetTransitionParams TransitionParams;
-	TransitionParams.BlendTime = 2.f;
-
-	LoosingTimerAction();
+	ICameraDetectableInterface * DetectablePawn = Cast<ICameraDetectableInterface>(OtherActor);
 	
-	PC->SetViewTarget(PC->GetPawn(),TransitionParams);
-}
-void ASpyCameraActor::PlayerDetected()
-{
-	bIsPlayerDetected = true;
-	OnPlayerDetected.Broadcast();
-	
-}
-void ASpyCameraActor::PlayerGone()
-{
-	bIsPlayerDetected = false;
-	OnPlayerGone.Broadcast();
-}
-
-void ASpyCameraActor::DetectionTimerAction()
-{
-	if(GetWorldTimerManager().IsTimerActive(LossTimeHandle))
+	ICameraDetectableInterface * DetectableController = Cast<ICameraDetectableInterface>(OtherActor->GetInstigatorController());
+	if(DetectablePawn)
 	{
-		GetWorldTimerManager().ClearTimer(LossTimeHandle);
+		DetectablePawn->CameraLost(this);
 	}
-	if(!bIsPlayerDetected)
+	if(DetectableController)
 	{
-		GetWorld()->GetTimerManager().SetTimer(DetectTimeHandle,this,&ASpyCameraActor::PlayerDetected,DetectTime,false);
+		DetectableController->CameraLost(this);
 	}
 }
 
-void ASpyCameraActor::LoosingTimerAction()
-{
-	if(GetWorldTimerManager().IsTimerActive(DetectTimeHandle))
-	{
-		GetWorldTimerManager().ClearTimer(DetectTimeHandle);
-	}
-	if(bIsPlayerDetected)
-	{
-		GetWorld()->GetTimerManager().SetTimer(LossTimeHandle,this,&ASpyCameraActor::PlayerGone,LoosTime,false);
-	}
-}
+
+
