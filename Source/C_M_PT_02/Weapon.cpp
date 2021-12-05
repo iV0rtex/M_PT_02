@@ -11,10 +11,6 @@ UWeapon::UWeapon()
 
 void UWeapon::Reload_Implementation()
 {
-	if(!CanReload())
-	{
-		return;
-	}
 	if(OnStartReload.IsBound())
 	{
 		OnStartReload.Broadcast();
@@ -23,6 +19,11 @@ void UWeapon::Reload_Implementation()
 	UseReloadAmmo();
 	
 	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&UWeapon::EndReload,ReloadDuration);
+}
+
+bool UWeapon::Reload_Validate()
+{
+	return CanReload();
 }
 
 void UWeapon::PrintStartReloadAction() const
@@ -86,10 +87,6 @@ void UWeapon::UseAmmo_Implementation()
 
 void UWeapon::Fire_Implementation()
 {
-	if(!CanFire())
-	{
-		return;
-	}
 	UseAmmo();
 	WeaponTrace();
 
@@ -97,6 +94,11 @@ void UWeapon::Fire_Implementation()
 	{
 		OnFired.Broadcast();
 	}
+}
+
+bool UWeapon::Fire_Validate()
+{
+	return CanFire();
 }
 
 bool UWeapon::CanReload()
