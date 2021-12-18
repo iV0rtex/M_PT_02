@@ -10,7 +10,7 @@ ATurret::ATurret()
 	PrimaryActorTick.bCanEverTick = true;
 
 	TurretBody = CreateDefaultSubobject<UStaticMeshComponent>("Body");
-	TurretBody->SetupAttachment(GetRootComponent());
+	SetRootComponent(TurretBody);
 	Health = 100.f;
 	LifeTime = 10.f;
 }
@@ -36,7 +36,7 @@ void ATurret::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	TurretBody->OnComponentHit.AddDynamic(this,&ATurret::OnComponentHit);
+	//TurretBody->OnComponentHit.AddDynamic(this,&ATurret::OnComponentHit);
 
 	GetWorld()->GetTimerManager().SetTimer(LifeTimeHandle,this,&ATurret::Die,LifeTime,false);
 	OnDestroy.AddUFunction(this,"PrintDestroyStatus");

@@ -1,13 +1,15 @@
 #pragma once
 
+//OLD WEAPON REALIZATION 
+
 #include "CoreMinimal.h"
 #include "WeaponReloadInterface.h"
 #include "Components/StaticMeshComponent.h"
 #include "Weapon.generated.h"
 
-DECLARE_EVENT(UWeapon, FOnReloaded);
+/*DECLARE_EVENT(UWeapon, FOnReloaded);
 DECLARE_EVENT(UWeapon, FOnStartReload);
-DECLARE_EVENT(UWeapon, FOnFired);
+DECLARE_EVENT(UWeapon, FOnFired);*/
 
 /**
  * 
@@ -59,9 +61,9 @@ protected:
 	UFUNCTION(NetMulticast,Reliable)
 	void WeaponTrace() const;
 
-	FOnReloaded OnReloaded;
+	/*FOnReloaded OnReloaded;
 	FOnStartReload OnStartReload;
-	FOnFired OnFired;
+	FOnFired OnFired;*/
 
 public:
 	
