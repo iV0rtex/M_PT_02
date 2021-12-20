@@ -28,7 +28,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	int Damage;
+	int32 Damage;
 	
 	virtual void InteractWeapon();
 

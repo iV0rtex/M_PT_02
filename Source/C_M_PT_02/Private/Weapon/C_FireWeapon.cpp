@@ -131,13 +131,12 @@ bool AC_FireWeapon::CanFire() const
 	return CurrentAmmoInClip > 0 && !bIsReloading;
 }
 
-bool AC_FireWeapon::Reload_Validate()
-{
-	return CanReload();
-}
-
 void AC_FireWeapon::Reload_Implementation()
 {
+	if(!CanReload())
+	{
+		return;
+	}
 	if(OnStartReload.IsBound())
 	{
 		OnStartReload.Broadcast();
@@ -150,12 +149,12 @@ void AC_FireWeapon::Reload_Implementation()
 
 void AC_FireWeapon::InteractWeapon_Implementation()
 {
+	if(!CanFire())
+	{
+		return;
+	}
 	UseAmmo();
 	Fire();
-}
-bool AC_FireWeapon::InteractWeapon_Validate()
-{
-	return CanFire();
 }
 
 

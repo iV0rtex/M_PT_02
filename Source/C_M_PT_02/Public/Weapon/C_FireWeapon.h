@@ -56,9 +56,9 @@ protected:
 public:
 	AC_FireWeapon();
 	
-	UFUNCTION(Server,Unreliable,WithValidation)
+	UFUNCTION(Server,Unreliable)
 	virtual void InteractWeapon() override;
-	UFUNCTION(Server,Unreliable,WithValidation)
+	UFUNCTION(Server,Unreliable)
 	virtual void Reload() override;
 
 	UFUNCTION()
