@@ -11,10 +11,10 @@ UWeapon::UWeapon()
 
 void UWeapon::Reload_Implementation()
 {
-	if(OnStartReload.IsBound())
+	/*if(OnStartReload.IsBound())
 	{
 		OnStartReload.Broadcast();
-	}
+	}*/
 	bIsReloading = true;
 	UseReloadAmmo();
 	
@@ -66,9 +66,9 @@ void UWeapon::InitParams()
 
 void UWeapon::InitActions()
 {
-	OnFired.AddUFunction(this,"PrintFireAction");
+	/*OnFired.AddUFunction(this,"PrintFireAction");
 	OnReloaded.AddUFunction(this,"PrintEndReloadAction");
-	OnStartReload.AddUFunction(this,"PrintStartReloadAction");
+	OnStartReload.AddUFunction(this,"PrintStartReloadAction");*/
 }
 
 bool UWeapon::CanFire() const
@@ -90,10 +90,10 @@ void UWeapon::Fire_Implementation()
 	UseAmmo();
 	WeaponTrace();
 
-	if(OnFired.IsBound())
+	/*if(OnFired.IsBound())
 	{
 		OnFired.Broadcast();
-	}
+	}*/
 }
 
 bool UWeapon::Fire_Validate()
@@ -117,10 +117,10 @@ bool UWeapon::CanReload()
 void UWeapon::EndReload_Implementation()
 {
 	bIsReloading = false;
-	if(OnReloaded.IsBound())
+	/*if(OnReloaded.IsBound())
 	{
 		OnReloaded.Broadcast();
-	}
+	}*/
 }
 
 

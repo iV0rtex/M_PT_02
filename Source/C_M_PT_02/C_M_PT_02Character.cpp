@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #include "C_M_PT_02Character.h"
 
 #include "GameplayDebuggerTypes.h"
@@ -11,51 +9,41 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
-
-//////////////////////////////////////////////////////////////////////////
-// AC_M_PT_02Character
-
+#include "Weapon/C_WeaponManagerComponent.h"
 
 AC_M_PT_02Character::AC_M_PT_02Character()
 {
-	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	// set our turn rates for input
 	BaseTurnRate = 45.f;
 	BaseLookUpRate = 45.f;
 
-	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); // ...at this rotation rate
+	GetCharacterMovement()->bOrientRotationToMovement = true; 	
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 540.0f, 0.0f); 
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
-	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-
-	// Create a follow camera
+	CameraBoom->TargetArmLength = 300.0f; 
+	CameraBoom->bUsePawnControlRotation = true; 
+	
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
-
-	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
-	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
-
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	FollowCamera->bUsePawnControlRotation = false;
+	
 	Inventory = CreateDefaultSubobject<UPlayerInventoryV2>(TEXT("Inventory"));
 	
-	USkeletalMeshComponent* MeshL = GetMesh();
-	
+	/*USkeletalMeshComponent* MeshL = GetMesh();
 	WeaponComponent = CreateDefaultSubobject<UWeapon>(TEXT("WeaponComponent"));
-	WeaponComponent->SetupAttachment(MeshL);
+	WeaponComponent->SetupAttachment(MeshL);*/ //Old weapon realization
+
+	WeaponManagerComponent = CreateDefaultSubobject<UC_WeaponManagerComponent>(TEXT("WeaponManager"));
+	
 
 	MaxHealth = 100.f;
 	Health = MaxHealth;
@@ -66,12 +54,8 @@ AC_M_PT_02Character::AC_M_PT_02Character()
 	bYouMustDieEffect = false;
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
 void AC_M_PT_02Character::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	// Set up gameplay key bindings
 	check(PlayerInputComponent);
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
@@ -79,24 +63,21 @@ void AC_M_PT_02Character::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAxis("MoveForward", this, &AC_M_PT_02Character::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AC_M_PT_02Character::MoveRight);
 
-	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
-	// "turn" handles devices that provide an absolute delta, such as a mouse.
-	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("TurnRate", this, &AC_M_PT_02Character::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AC_M_PT_02Character::LookUpAtRate);
 
-	// handle touch devices
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &AC_M_PT_02Character::TouchStarted);
 	PlayerInputComponent->BindTouch(IE_Released, this, &AC_M_PT_02Character::TouchStopped);
 
-	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AC_M_PT_02Character::OnResetVR);
-
 	
-	PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponComponent, &UWeapon::Fire);
-	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponComponent, &UWeapon::Reload);
+	/*PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponComponent, &UWeapon::Fire);
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponComponent, &UWeapon::Reload);*/ //Old weapon realization
+
+	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponManagerComponent, &UC_WeaponManagerComponent::ReloadCurrentWeapon);
+	PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponManagerComponent, &UC_WeaponManagerComponent::InteractCurrentWeapon);
 }
 
 void AC_M_PT_02Character::BeginPlay()
@@ -268,15 +249,14 @@ float AC_M_PT_02Character::GetMaxHealth() const
 	return MaxHealth;
 }
 
+void AC_M_PT_02Character::SetWeapon(AC_BaseWeapon* BaseWeapon)
+{
+	WeaponManagerComponent->SetCurrentWeapon(BaseWeapon);
+}
+
 
 void AC_M_PT_02Character::OnResetVR()
 {
-	// If C_M_PT_02 is added to a project via 'Add Feature' in the Unreal Editor the dependency on HeadMountedDisplay in C_M_PT_02.Build.cs is not automatically propagated
-	// and a linker error will result.
-	// You will need to either:
-	//		Add "HeadMountedDisplay" to [YourProject].Build.cs PublicDependencyModuleNames in order to build successfully (appropriate if supporting VR).
-	// or:
-	//		Comment or delete the call to ResetOrientationAndPosition below (appropriate if not supporting VR)
 	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
@@ -292,13 +272,11 @@ void AC_M_PT_02Character::TouchStopped(ETouchIndex::Type FingerIndex, FVector Lo
 
 void AC_M_PT_02Character::TurnAtRate(float Rate)
 {
-	// calculate delta for this frame from the rate information
 	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
 }
 
 void AC_M_PT_02Character::LookUpAtRate(float Rate)
 {
-	// calculate delta for this frame from the rate information
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
 }
 
@@ -306,11 +284,9 @@ void AC_M_PT_02Character::MoveForward(float Value)
 {
 	if ((Controller != nullptr) && (Value != 0.0f))
 	{
-		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 		AddMovementInput(Direction, Value);
 	}
@@ -320,13 +296,10 @@ void AC_M_PT_02Character::MoveRight(float Value)
 {
 	if ( (Controller != nullptr) && (Value != 0.0f) )
 	{
-		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
 	
-		// get right vector 
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
 }
