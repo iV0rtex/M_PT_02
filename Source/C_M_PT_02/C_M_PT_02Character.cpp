@@ -78,6 +78,7 @@ void AC_M_PT_02Character::SetupPlayerInputComponent(class UInputComponent* Playe
 
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponManagerComponent, &UC_WeaponManagerComponent::ReloadCurrentWeapon);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponManagerComponent, &UC_WeaponManagerComponent::InteractCurrentWeapon);
+	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &AC_M_PT_02Character::DropWeapon);
 }
 
 void AC_M_PT_02Character::BeginPlay()
@@ -136,6 +137,14 @@ void AC_M_PT_02Character::Hit()
 	}else if(OnTookDamage.IsBound())
 	{
 		OnTookDamage.Broadcast(Damage);
+	}
+}
+
+void AC_M_PT_02Character::DropWeapon()
+{
+	if(WeaponManagerComponent)
+	{
+		WeaponManagerComponent->DropCurrentWeapon();
 	}
 }
 

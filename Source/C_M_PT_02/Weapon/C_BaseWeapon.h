@@ -20,6 +20,7 @@ public:
 	AC_BaseWeapon();
 
 	UStaticMeshComponent* GetStaticMeshComponent() const { return  StaticMeshComponent; }
+	UBoxComponent* GetBoxComponent() const { return  BoxComponent; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -34,5 +35,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnOverlap(AActor* OtherActor);
+	UFUNCTION(BlueprintCallable)
+	virtual void OnDrop();
 
 };
