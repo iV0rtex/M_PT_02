@@ -31,7 +31,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Damage;
 	
-	virtual void InteractWeapon();
+	virtual void ServerInteractWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	void OnOverlap(AActor* OtherActor);

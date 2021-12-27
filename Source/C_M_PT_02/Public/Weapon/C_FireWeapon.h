@@ -41,17 +41,17 @@ protected:
 	UParticleSystem* ParticleSystem;
 
 	UFUNCTION(Server,Unreliable)
-	void UseReloadAmmo();
+	void ServerUseReloadAmmo();
 	UFUNCTION(Server,Unreliable)
-	void EndReload();
+	void ServerEndReload();
 	UFUNCTION(Server,Unreliable)
-	void UseAmmo();
+	void ServerUseAmmo();
 	UFUNCTION(Server,Unreliable)
-	void Fire();
+	void ServerFire();
 	UFUNCTION(Server,Unreliable)
-	void LaunchBullet();
+	void ServerLaunchBullet();
 	UFUNCTION(Server,Unreliable)
-	void EndFire();
+	void ServerEndFire();
 	
 	UFUNCTION(NetMulticast,Unreliable)
 	void FireEffectMulticast();
@@ -76,9 +76,9 @@ public:
 	AC_FireWeapon();
 	
 	UFUNCTION(Server,Unreliable)
-	virtual void InteractWeapon() override;
+	virtual void ServerInteractWeapon() override;
 	UFUNCTION(Server,Unreliable)
-	virtual void Reload() override;
+	virtual void ServerReload() override;
 
 	UFUNCTION()
 	void PrintStartReloadAction() const;

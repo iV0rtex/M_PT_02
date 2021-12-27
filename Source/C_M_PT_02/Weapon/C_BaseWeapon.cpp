@@ -29,7 +29,7 @@ void AC_BaseWeapon::Tick(float DeltaTime)
 
 }
 
-void AC_BaseWeapon::InteractWeapon()
+void AC_BaseWeapon::ServerInteractWeapon()
 {
 	
 }

@@ -49,14 +49,14 @@ protected:
 	bool CanFire() const;
 	
 	UFUNCTION(Server,Reliable)
-	void UseAmmo();
+	void ServerUseAmmo();
 
 	
 	virtual bool CanReload() override;
 	UFUNCTION(Server,Unreliable)
-	void EndReload();
+	void ServerEndReload();
 	UFUNCTION(Server,Unreliable)
-	void UseReloadAmmo();
+	void ServerUseReloadAmmo();
 
 	UFUNCTION(NetMulticast,Reliable)
 	void WeaponTrace() const;
@@ -68,9 +68,9 @@ protected:
 public:
 	
 	UFUNCTION(Server,Reliable, WithValidation)
-	void Fire();
+	void ServerFire();
 	UFUNCTION(Server,Reliable, WithValidation)
-	virtual void Reload() override;
+	virtual void ServerReload() override;
 	
 	UFUNCTION()
 	void PrintStartReloadAction() const;

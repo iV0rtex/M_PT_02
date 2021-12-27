@@ -84,7 +84,7 @@ void UC_WeaponManagerComponent::InteractCurrentWeapon_Implementation()
 	}*///TODO: Fix it
 	if(CurrentWeapon)
 	{
-		CurrentWeapon->InteractWeapon();
+		CurrentWeapon->ServerInteractWeapon();
 	}
 }
 
@@ -99,7 +99,7 @@ void UC_WeaponManagerComponent::ReloadCurrentWeapon_Implementation()
 		IWeaponReloadInterface *  WeaponReload = Cast<IWeaponReloadInterface>(CurrentWeapon);
 		if(WeaponReload)
 		{
-			WeaponReload->Reload();
+			WeaponReload->ServerReload();
 		}
 	}
 }

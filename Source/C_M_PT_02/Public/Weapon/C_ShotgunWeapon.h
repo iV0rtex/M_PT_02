@@ -18,6 +18,6 @@ class C_M_PT_02_API AC_ShotgunWeapon : public AC_FireWeapon
 	int32 BulletAmount;
 
 protected:
-	virtual void LaunchBullet_Implementation() override;
+	virtual void ServerLaunchBullet_Implementation() override;
 	
 };

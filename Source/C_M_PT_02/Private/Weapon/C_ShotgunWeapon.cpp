@@ -15,7 +15,7 @@ AC_ShotgunWeapon::AC_ShotgunWeapon()
 	Range = 1000;
 }
 
-void AC_ShotgunWeapon::LaunchBullet_Implementation()
+void AC_ShotgunWeapon::ServerLaunchBullet_Implementation()
 {
 	for(int32 i = 0; i<BulletAmount;i++)
 	{

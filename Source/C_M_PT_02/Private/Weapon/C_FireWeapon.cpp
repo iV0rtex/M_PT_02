@@ -40,7 +40,7 @@ void AC_FireWeapon::PrintFireAction() const
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, Message);
 }
 
-void AC_FireWeapon::UseReloadAmmo_Implementation()
+void AC_FireWeapon::ServerUseReloadAmmo_Implementation()
 {
 	int32 AmmoForReload = AmmoPerClip - CurrentAmmoInClip;
 	if(CurrentAmmo < AmmoForReload)
@@ -55,9 +55,9 @@ void AC_FireWeapon::UseReloadAmmo_Implementation()
 	CurrentAmmoInClip += AmmoForReload;
 }
 
-void AC_FireWeapon::EndReload_Implementation()
+void AC_FireWeapon::ServerEndReload_Implementation()
 {
-	UseReloadAmmo();
+	ServerUseReloadAmmo();
 	bIsReloading = false;
 	if(OnReloaded.IsBound())
 	{
@@ -65,19 +65,19 @@ void AC_FireWeapon::EndReload_Implementation()
 	}
 }
 
-void AC_FireWeapon::UseAmmo_Implementation()
+void AC_FireWeapon::ServerUseAmmo_Implementation()
 {
 	CurrentAmmoInClip--;
 }
 
-void AC_FireWeapon::Fire_Implementation()
+void AC_FireWeapon::ServerFire_Implementation()
 {
 	FireEffectMulticast();
 	if(OnInteractWeaponMulticast.IsBound())
 	{
 		OnInteractWeaponMulticast.Broadcast();
 	}
-	LaunchBullet();
+	ServerLaunchBullet();
 
 	if(OnFired.IsBound())
 	{
@@ -97,7 +97,7 @@ void AC_FireWeapon::FireEffectMulticast_Implementation()
 	);
 }
 
-void AC_FireWeapon::LaunchBullet_Implementation()
+void AC_FireWeapon::ServerLaunchBullet_Implementation()
 {
 	FVector LocationSocket = GetStaticMeshComponent()->GetSocketLocation("Muzzle");
 	FCollisionQueryParams RV_TraceParams;
@@ -166,7 +166,7 @@ void AC_FireWeapon::OnDrop()
 	}
 }
 
-void AC_FireWeapon::Reload_Implementation()
+void AC_FireWeapon::ServerReload_Implementation()
 {
 	if(!CanReload())
 	{
@@ -178,21 +178,21 @@ void AC_FireWeapon::Reload_Implementation()
 	}
 	bIsReloading = true;
 	
-	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&AC_FireWeapon::EndReload,ReloadDuration);
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&AC_FireWeapon::ServerEndReload,ReloadDuration);
 }
 
-void AC_FireWeapon::InteractWeapon_Implementation()
+void AC_FireWeapon::ServerInteractWeapon_Implementation()
 {
 	if (!CanFire())
 	{
 		return;
 	}
-	UseAmmo();
-	Fire();
+	ServerUseAmmo();
+	ServerFire();
 	bCanFire = false;
-	GetWorld()->GetTimerManager().SetTimer(FireTimeHandle,this,&AC_FireWeapon::EndFire,FireDuration);
+	GetWorld()->GetTimerManager().SetTimer(FireTimeHandle,this,&AC_FireWeapon::ServerEndFire,FireDuration);
 }
-void AC_FireWeapon::EndFire_Implementation()
+void AC_FireWeapon::ServerEndFire_Implementation()
 {
 	bCanFire = true;
 }
