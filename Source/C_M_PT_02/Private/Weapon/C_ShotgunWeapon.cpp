@@ -17,20 +17,20 @@ AC_ShotgunWeapon::AC_ShotgunWeapon()
 
 void AC_ShotgunWeapon::ServerLaunchBullet_Implementation()
 {
+	FVector LocationSocket = GetStaticMeshComponent()->GetSocketLocation("Muzzle");
+	FVector LocationEnd = LocationSocket;
+	FVector Forward = this->GetActorForwardVector();
 	for(int32 i = 0; i<BulletAmount;i++)
 	{
-		FVector LocationSocket = GetStaticMeshComponent()->GetSocketLocation("Muzzle");
 		FCollisionQueryParams RV_TraceParams;
 		RV_TraceParams.bTraceComplex = true;
 		FHitResult RV_Hit(ForceInit);
-		FVector LocationEnd = LocationSocket;
-		FVector Forward = this->GetActorForwardVector();
 		UE_LOG(LogTemp, Warning, TEXT("PhysicsHandle working %s"), *Forward.ToString());
-		Forward = Forward * Range;
 		UE_LOG(LogTemp, Warning, TEXT("PhysicsHandle working %s"), *Forward.ToString());
-		Forward.Z += UKismetMathLibrary::RandomIntegerInRange(-200,200);
-		Forward.Y += UKismetMathLibrary::RandomIntegerInRange(-200,200);
-		LocationEnd += Forward;
+		FVector NewForward = Forward * Range;
+		NewForward.Z += UKismetMathLibrary::RandomIntegerInRange(-200,200);
+		NewForward.Y += UKismetMathLibrary::RandomIntegerInRange(-200,200);
+		LocationEnd += NewForward;
 		GetWorld()->LineTraceSingleByChannel(
 		   RV_Hit,
 		   LocationSocket,
