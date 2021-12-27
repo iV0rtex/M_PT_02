@@ -20,6 +20,7 @@ public:
 	AC_BaseWeapon();
 
 	UStaticMeshComponent* GetStaticMeshComponent() const { return  StaticMeshComponent; }
+	UBoxComponent* GetBoxComponent() const { return  BoxComponent; }
 
 protected:
 	virtual void BeginPlay() override;
@@ -30,9 +31,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	int32 Damage;
 	
-	virtual void InteractWeapon();
+	virtual void ServerInteractWeapon();
 
 	UFUNCTION(BlueprintCallable)
 	void OnOverlap(AActor* OtherActor);
+	UFUNCTION(BlueprintCallable)
+	virtual void OnDrop();
 
 };

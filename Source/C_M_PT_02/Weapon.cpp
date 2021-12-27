@@ -9,19 +9,19 @@ UWeapon::UWeapon()
 	
 }
 
-void UWeapon::Reload_Implementation()
+void UWeapon::ServerReload_Implementation()
 {
 	/*if(OnStartReload.IsBound())
 	{
 		OnStartReload.Broadcast();
 	}*/
 	bIsReloading = true;
-	UseReloadAmmo();
+	ServerUseReloadAmmo();
 	
-	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&UWeapon::EndReload,ReloadDuration);
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&UWeapon::ServerEndReload,ReloadDuration);
 }
 
-bool UWeapon::Reload_Validate()
+bool UWeapon::ServerReload_Validate()
 {
 	return CanReload();
 }
@@ -80,14 +80,14 @@ bool UWeapon::CanFire() const
 	return CurrentAmmoInClip > 0 && !bIsReloading;
 }
 
-void UWeapon::UseAmmo_Implementation()
+void UWeapon::ServerUseAmmo_Implementation()
 {
 	CurrentAmmoInClip--;
 }
 
-void UWeapon::Fire_Implementation()
+void UWeapon::ServerFire_Implementation()
 {
-	UseAmmo();
+	ServerUseAmmo();
 	WeaponTrace();
 
 	/*if(OnFired.IsBound())
@@ -96,7 +96,7 @@ void UWeapon::Fire_Implementation()
 	}*/
 }
 
-bool UWeapon::Fire_Validate()
+bool UWeapon::ServerFire_Validate()
 {
 	return CanFire();
 }
@@ -114,7 +114,7 @@ bool UWeapon::CanReload()
 	return true;
 }
 
-void UWeapon::EndReload_Implementation()
+void UWeapon::ServerEndReload_Implementation()
 {
 	bIsReloading = false;
 	/*if(OnReloaded.IsBound())
@@ -124,7 +124,7 @@ void UWeapon::EndReload_Implementation()
 }
 
 
-void UWeapon::UseReloadAmmo_Implementation()
+void UWeapon::ServerUseReloadAmmo_Implementation()
 {
 	int32 AmmoForReload = AmmoPerClip - CurrentAmmoInClip;
 	if(CurrentAmmo < AmmoForReload)
@@ -141,6 +141,10 @@ void UWeapon::UseReloadAmmo_Implementation()
 
 void UWeapon::WeaponTrace_Implementation() const
 {
+	if(GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
 	const FName Name;
 	const TArray<AActor*> Array;
 	const FVector StartSocketLocation = GetSocketLocation(MuzzleSocketName);

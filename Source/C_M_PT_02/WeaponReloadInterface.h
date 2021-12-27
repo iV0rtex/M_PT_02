@@ -14,5 +14,5 @@ class IWeaponReloadInterface
 
 public:
 	virtual bool CanReload() = 0;
-	virtual void Reload() = 0;
+	virtual void ServerReload() = 0;
 };

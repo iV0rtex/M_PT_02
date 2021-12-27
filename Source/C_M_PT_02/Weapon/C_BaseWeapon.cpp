@@ -18,6 +18,8 @@ AC_BaseWeapon::AC_BaseWeapon()
 void AC_BaseWeapon::BeginPlay()
 {
 	Super::BeginPlay();
+	this->SetReplicates(true);
+	this->SetReplicateMovement(true);
 	
 }
 
@@ -27,7 +29,7 @@ void AC_BaseWeapon::Tick(float DeltaTime)
 
 }
 
-void AC_BaseWeapon::InteractWeapon()
+void AC_BaseWeapon::ServerInteractWeapon()
 {
 	
 }
@@ -39,5 +41,10 @@ void AC_BaseWeapon::OnOverlap(AActor* OtherActor)
 	{
 		WeaponryActor->SetWeapon(this);
 	}
+}
+
+void AC_BaseWeapon::OnDrop()
+{
+	
 }
 

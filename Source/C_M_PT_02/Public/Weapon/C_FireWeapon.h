@@ -10,6 +10,7 @@
 DECLARE_EVENT(AC_FireWeapon, FOnReloaded);
 DECLARE_EVENT(AC_FireWeapon, FOnStartReload);
 DECLARE_EVENT(AC_FireWeapon, FOnFired);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractWeaponMulticast);
 
 UCLASS()
 class C_M_PT_02_API AC_FireWeapon : public AC_BaseWeapon,public IWeaponReloadInterface
@@ -20,7 +21,7 @@ class C_M_PT_02_API AC_FireWeapon : public AC_BaseWeapon,public IWeaponReloadInt
 
 	FOnReloaded OnReloaded;
 	FOnStartReload OnStartReload;
-	FOnFired OnFired;
+	
 
 protected:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
@@ -31,15 +32,29 @@ protected:
 	int32 MaxAmmo;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	float ReloadDuration;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	float FireDuration;
+	UPROPERTY(BlueprintAssignable)
+	FInteractWeaponMulticast OnInteractWeaponMulticast;
+
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	UParticleSystem* ParticleSystem;
 
 	UFUNCTION(Server,Unreliable)
-	void UseReloadAmmo();
+	void ServerUseReloadAmmo();
 	UFUNCTION(Server,Unreliable)
-	void EndReload();
+	void ServerEndReload();
 	UFUNCTION(Server,Unreliable)
-	void UseAmmo();
+	void ServerUseAmmo();
 	UFUNCTION(Server,Unreliable)
-	void Fire();
+	void ServerFire();
+	UFUNCTION(Server,Unreliable)
+	void ServerLaunchBullet();
+	UFUNCTION(Server,Unreliable)
+	void ServerEndFire();
+	
+	UFUNCTION(NetMulticast,Unreliable)
+	void FireEffectMulticast();
 	
 	UPROPERTY()
 	int32 CurrentAmmo;
@@ -47,9 +62,13 @@ protected:
 	int32 CurrentAmmoInClip;
 	UPROPERTY()
 	bool bIsReloading;
+	bool bCanFire;
+	FTimerHandle FireTimeHandle;
+	FOnFired OnFired;
 	
 	virtual bool CanReload() override;
 	virtual bool CanFire() const;
+	virtual void OnDrop() override;
 
 	
 
@@ -57,9 +76,9 @@ public:
 	AC_FireWeapon();
 	
 	UFUNCTION(Server,Unreliable)
-	virtual void InteractWeapon() override;
+	virtual void ServerInteractWeapon() override;
 	UFUNCTION(Server,Unreliable)
-	virtual void Reload() override;
+	virtual void ServerReload() override;
 
 	UFUNCTION()
 	void PrintStartReloadAction() const;

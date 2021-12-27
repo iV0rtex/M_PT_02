@@ -5,6 +5,7 @@
 
 #include "DrawDebugHelpers.h"
 #include "C_M_PT_02/C_M_PT_02Character.h"
+#include "Kismet/GameplayStatics.h"
 
 AC_FireWeapon::AC_FireWeapon()
 {
@@ -15,6 +16,8 @@ AC_FireWeapon::AC_FireWeapon()
 	CurrentAmmo = MaxAmmo;
 	CurrentAmmoInClip = AmmoPerClip;
 	bIsReloading = false;
+	bCanFire = true;
+	FireDuration = .6f;
 
 	OnFired.AddUFunction(this,"PrintFireAction");
 	OnReloaded.AddUFunction(this,"PrintEndReloadAction");
@@ -37,7 +40,7 @@ void AC_FireWeapon::PrintFireAction() const
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, Message);
 }
 
-void AC_FireWeapon::UseReloadAmmo_Implementation()
+void AC_FireWeapon::ServerUseReloadAmmo_Implementation()
 {
 	int32 AmmoForReload = AmmoPerClip - CurrentAmmoInClip;
 	if(CurrentAmmo < AmmoForReload)
@@ -52,8 +55,9 @@ void AC_FireWeapon::UseReloadAmmo_Implementation()
 	CurrentAmmoInClip += AmmoForReload;
 }
 
-void AC_FireWeapon::EndReload_Implementation()
+void AC_FireWeapon::ServerEndReload_Implementation()
 {
+	ServerUseReloadAmmo();
 	bIsReloading = false;
 	if(OnReloaded.IsBound())
 	{
@@ -61,12 +65,43 @@ void AC_FireWeapon::EndReload_Implementation()
 	}
 }
 
-void AC_FireWeapon::UseAmmo_Implementation()
+void AC_FireWeapon::ServerUseAmmo_Implementation()
 {
 	CurrentAmmoInClip--;
 }
 
-void AC_FireWeapon::Fire_Implementation()
+void AC_FireWeapon::ServerFire_Implementation()
+{
+	FireEffectMulticast();
+	if(OnInteractWeaponMulticast.IsBound())
+	{
+		OnInteractWeaponMulticast.Broadcast();
+	}
+	ServerLaunchBullet();
+
+	if(OnFired.IsBound())
+	{
+		OnFired.Broadcast();
+	}
+}
+
+void AC_FireWeapon::FireEffectMulticast_Implementation()
+{
+	if(GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
+	UGameplayStatics::SpawnEmitterAtLocation(
+		GetWorld(),
+		ParticleSystem,
+		GetStaticMeshComponent()->GetSocketTransform("Muzzle",RTS_World),
+		true,
+		EPSCPoolMethod::AutoRelease,
+		true
+	);
+}
+
+void AC_FireWeapon::ServerLaunchBullet_Implementation()
 {
 	FVector LocationSocket = GetStaticMeshComponent()->GetSocketLocation("Muzzle");
 	FCollisionQueryParams RV_TraceParams;
@@ -102,11 +137,6 @@ void AC_FireWeapon::Fire_Implementation()
 		}
 		UE_LOG(LogTemp, Warning, TEXT("%s"), *RV_Hit.GetActor()->GetName());
 	}
-
-	if(OnFired.IsBound())
-	{
-		OnFired.Broadcast();
-	}
 }
 
 bool AC_FireWeapon::CanReload()
@@ -128,10 +158,19 @@ bool AC_FireWeapon::CanFire() const
 	{
 		return false;
 	}*/ //TODO: Fix it
-	return CurrentAmmoInClip > 0 && !bIsReloading;
+	return bCanFire && CurrentAmmoInClip > 0 && !bIsReloading;
 }
 
-void AC_FireWeapon::Reload_Implementation()
+void AC_FireWeapon::OnDrop()
+{
+	bIsReloading = false;
+	if(GetWorld()->GetTimerManager().IsTimerActive(ReloadTimeHandle))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ReloadTimeHandle);
+	}
+}
+
+void AC_FireWeapon::ServerReload_Implementation()
 {
 	if(!CanReload())
 	{
@@ -142,19 +181,24 @@ void AC_FireWeapon::Reload_Implementation()
 		OnStartReload.Broadcast();
 	}
 	bIsReloading = true;
-	UseReloadAmmo();
 	
-	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&AC_FireWeapon::EndReload,ReloadDuration);
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimeHandle,this,&AC_FireWeapon::ServerEndReload,ReloadDuration);
 }
 
-void AC_FireWeapon::InteractWeapon_Implementation()
+void AC_FireWeapon::ServerInteractWeapon_Implementation()
 {
-	if(!CanFire())
+	if (!CanFire())
 	{
 		return;
 	}
-	UseAmmo();
-	Fire();
+	ServerUseAmmo();
+	ServerFire();
+	bCanFire = false;
+	GetWorld()->GetTimerManager().SetTimer(FireTimeHandle,this,&AC_FireWeapon::ServerEndFire,FireDuration);
+}
+void AC_FireWeapon::ServerEndFire_Implementation()
+{
+	bCanFire = true;
 }
 
 

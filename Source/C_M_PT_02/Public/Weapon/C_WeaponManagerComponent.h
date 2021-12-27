@@ -20,6 +20,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	int32 DistanceToDropWeapon;
 
 public:	
 	// Called every frame
@@ -28,12 +29,14 @@ public:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	AC_BaseWeapon * CurrentWeapon;
 
-	UFUNCTION(BlueprintCallable)
-	bool SetCurrentWeapon(AC_BaseWeapon* NewWeapon);
+	UFUNCTION(Server,BlueprintCallable,Unreliable)
+	void SetCurrentWeapon(AC_BaseWeapon* NewWeapon);
+	UFUNCTION(Server,BlueprintCallable,Unreliable)
+	void DropCurrentWeapon();
 
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(Server,BlueprintCallable,Unreliable)
 	void InteractCurrentWeapon();
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(Server,BlueprintCallable,Unreliable)
 	void ReloadCurrentWeapon();
 
 		

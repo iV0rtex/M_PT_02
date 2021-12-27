@@ -58,6 +58,8 @@ protected:
 	
 	UFUNCTION()
 	void Hit();
+	UFUNCTION()
+	void DropWeapon();
 
 	UFUNCTION()
 	void OnHeal();
