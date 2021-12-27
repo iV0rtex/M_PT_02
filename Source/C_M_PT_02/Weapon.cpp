@@ -141,6 +141,10 @@ void UWeapon::ServerUseReloadAmmo_Implementation()
 
 void UWeapon::WeaponTrace_Implementation() const
 {
+	if(GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
 	const FName Name;
 	const TArray<AActor*> Array;
 	const FVector StartSocketLocation = GetSocketLocation(MuzzleSocketName);

@@ -87,6 +87,10 @@ void AC_FireWeapon::ServerFire_Implementation()
 
 void AC_FireWeapon::FireEffectMulticast_Implementation()
 {
+	if(GetNetMode() == NM_DedicatedServer)
+	{
+		return;
+	}
 	UGameplayStatics::SpawnEmitterAtLocation(
 		GetWorld(),
 		ParticleSystem,
