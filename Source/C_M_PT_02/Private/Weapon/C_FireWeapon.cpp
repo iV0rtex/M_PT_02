@@ -18,6 +18,11 @@ AC_FireWeapon::AC_FireWeapon()
 	bIsReloading = false;
 	bCanFire = true;
 	FireDuration = .6f;
+}
+
+void AC_FireWeapon::BeginPlay()
+{
+	Super::BeginPlay();
 
 	OnFired.AddUFunction(this,"PrintFireAction");
 	OnReloaded.AddUFunction(this,"PrintEndReloadAction");
@@ -103,40 +108,9 @@ void AC_FireWeapon::FireEffectMulticast_Implementation()
 
 void AC_FireWeapon::ServerLaunchBullet_Implementation()
 {
-	FVector LocationSocket = GetStaticMeshComponent()->GetSocketLocation("Muzzle");
-	FCollisionQueryParams RV_TraceParams;
-	RV_TraceParams.bTraceComplex = true;
-	FHitResult RV_Hit(ForceInit);
-	FVector LocationEnd = LocationSocket;
-	FVector Forward = this->GetActorForwardVector();
-	Forward = Forward * Range;
-	LocationEnd += Forward;
-	GetWorld()->LineTraceSingleByChannel(
-	   RV_Hit,
-	   LocationSocket,
-	   LocationEnd,
-	   ECC_Pawn,
-	   RV_TraceParams
-	);
-	DrawDebugLine(
-	   GetWorld(),
-	   LocationSocket,
-	   LocationEnd,
-	   FColor(255, 0, 0),
-	   false,
-	   0.3,
-	   0,
-	   2
-	   );
-	if (RV_Hit.bBlockingHit)
-	{
-		auto* Character = Cast<AC_M_PT_02Character>(RV_Hit.GetActor());
-		if (Character)
-		{
-			//Character->ApplyDamage(Damage); //TODO: for the future updates
-		}
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *RV_Hit.GetActor()->GetName());
-	}
+	const FVector LocationSocket = GetStaticMeshComponent()->GetSocketLocation("Muzzle");
+	const FRotator Rotation = this->GetActorRotation();
+	GetWorld()->SpawnActor(Bullet,&LocationSocket,&Rotation);
 }
 
 bool AC_FireWeapon::CanReload()

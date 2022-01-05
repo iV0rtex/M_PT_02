@@ -17,46 +17,15 @@ AC_ShotgunWeapon::AC_ShotgunWeapon()
 
 void AC_ShotgunWeapon::ServerLaunchBullet_Implementation()
 {
-	FVector LocationSocket = GetStaticMeshComponent()->GetSocketLocation("Muzzle");
-	FVector LocationEnd = LocationSocket;
-	FVector Forward = this->GetActorForwardVector();
+	const FVector LocationSocket = GetStaticMeshComponent()->GetSocketLocation("Muzzle");
+	
+	
 	for(int32 i = 0; i<BulletAmount;i++)
 	{
-		FCollisionQueryParams RV_TraceParams;
-		RV_TraceParams.bTraceComplex = true;
-		FHitResult RV_Hit(ForceInit);
-		UE_LOG(LogTemp, Warning, TEXT("PhysicsHandle working %s"), *Forward.ToString());
-		UE_LOG(LogTemp, Warning, TEXT("PhysicsHandle working %s"), *Forward.ToString());
-		FVector NewForward = Forward * Range;
-		NewForward.Z += UKismetMathLibrary::RandomIntegerInRange(-200,200);
-		NewForward.Y += UKismetMathLibrary::RandomIntegerInRange(-200,200);
-		LocationEnd += NewForward;
-		GetWorld()->LineTraceSingleByChannel(
-		   RV_Hit,
-		   LocationSocket,
-		   LocationEnd,
-		   ECC_Pawn,
-		   RV_TraceParams
-		);
-		DrawDebugLine(
-		   GetWorld(),
-		   LocationSocket,
-		   LocationEnd,
-		   FColor(255, 0, 0),
-		   false,
-		   0.3,
-		   0,
-		   2
-		   );
-		if (RV_Hit.bBlockingHit)
-		{
-			auto* Character = Cast<AC_M_PT_02Character>(RV_Hit.GetActor());
-			if (Character)
-			{
-				//Character->ApplyDamage(Damage); //TODO: for the future updates
-			}
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *RV_Hit.GetActor()->GetName());
-		}
+		FRotator Rotation = this->GetActorRotation();
+		Rotation.Pitch += UKismetMathLibrary::RandomFloatInRange(-20.f,20.f);
+		Rotation.Yaw += UKismetMathLibrary::RandomFloatInRange(-20.f,20.f);
+		GetWorld()->SpawnActor(Bullet,&LocationSocket,&Rotation);
 	}
 	
 }
