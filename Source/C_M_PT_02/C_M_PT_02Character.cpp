@@ -9,6 +9,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Inventory/InventoryManagerComponent.h"
+#include "Net/UnrealNetwork.h"
 #include "Weapon/C_WeaponManagerComponent.h"
 
 AC_M_PT_02Character::AC_M_PT_02Character()
@@ -43,9 +45,9 @@ AC_M_PT_02Character::AC_M_PT_02Character()
 	WeaponComponent->SetupAttachment(MeshL);*/ //Old weapon realization
 
 	WeaponManagerComponent = CreateDefaultSubobject<UC_WeaponManagerComponent>(TEXT("WeaponManager"));
+	InventoryManagerComponent = CreateDefaultSubobject<UInventoryManagerComponent>(TEXT("InventoryManager"));
 	
-
-	MaxHealth = 100.f;
+	MaxHealth = 100;
 	Health = MaxHealth;
 	HealRate = 2.f;
 	HealForTik = 3.f;
@@ -79,6 +81,8 @@ void AC_M_PT_02Character::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("Reload", IE_Pressed, WeaponManagerComponent, &UC_WeaponManagerComponent::ReloadCurrentWeapon);
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, WeaponManagerComponent, &UC_WeaponManagerComponent::InteractCurrentWeapon);
 	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &AC_M_PT_02Character::DropWeapon);
+	PlayerInputComponent->BindAction("UseItem", IE_Pressed, this, &AC_M_PT_02Character::UseItem);
+	PlayerInputComponent->BindAction("DropItem", IE_Pressed, this, &AC_M_PT_02Character::DropItem);
 }
 
 void AC_M_PT_02Character::BeginPlay()
@@ -122,6 +126,12 @@ void AC_M_PT_02Character::OnHit()
 	}
 }
 
+void AC_M_PT_02Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AC_M_PT_02Character, Health)
+}
 
 
 void AC_M_PT_02Character::Hit()
@@ -146,6 +156,23 @@ void AC_M_PT_02Character::DropWeapon()
 	{
 		WeaponManagerComponent->DropCurrentWeapon();
 	}
+}
+
+void AC_M_PT_02Character::UseItem()
+{
+	if(InventoryManagerComponent)
+	{
+		InventoryManagerComponent->ServerUseFirstItem();
+	}
+}
+
+void AC_M_PT_02Character::DropItem()
+{
+	if(InventoryManagerComponent)
+	{
+		InventoryManagerComponent->ServerDropFirstItem();
+	}
+	
 }
 
 void AC_M_PT_02Character::OnHeal()
@@ -258,9 +285,32 @@ float AC_M_PT_02Character::GetMaxHealth() const
 	return MaxHealth;
 }
 
+void AC_M_PT_02Character::GetItem(AInventoryItem* NewItem)
+{
+	if(InventoryManagerComponent)
+	{
+		InventoryManagerComponent->ServerAddItem(NewItem,1);
+	}
+}
+
 void AC_M_PT_02Character::SetWeapon(AC_BaseWeapon* BaseWeapon)
 {
 	WeaponManagerComponent->SetCurrentWeapon(BaseWeapon);
+}
+
+void AC_M_PT_02Character::AddHealth(int32 Value)
+{
+	if(GetLocalRole() != ROLE_Authority)
+	{
+		return;
+	}
+
+	Health += Value;
+	if(Health > MaxHealth)
+	{
+		Health = MaxHealth;
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Green, FString::Printf(TEXT("Current Health: %i"),Health));
 }
 
 
