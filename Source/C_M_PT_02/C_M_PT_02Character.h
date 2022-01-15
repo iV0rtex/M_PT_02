@@ -9,7 +9,8 @@
 #include "Interface/WeaponryInterface.h"
 #include "C_M_PT_02Character.generated.h"
 
-DECLARE_EVENT_OneParam(AC_M_PT_02Character,FOnTookDamage,float);
+class AInventoryItem;
+DECLARE_EVENT_OneParam(AC_M_PT_02Character, FOnTookDamage, float);
 DECLARE_EVENT(AC_M_PT_02Character,FOnDied);
 DECLARE_EVENT(AC_M_PT_02Character,FOnHealed);
 DECLARE_EVENT(AC_M_PT_02Character,FOnActivatedHeal);
@@ -28,16 +29,46 @@ class AC_M_PT_02Character : public ACharacter,public IWeaponryInterface
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
+	UPlayerInventoryV2* Inventory;
+	
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	UWeapon* WeaponComponent;
+
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	class UC_WeaponManagerComponent* WeaponManagerComponent;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+	class UInventoryManagerComponent* InventoryManagerComponent;
 public:
 	AC_M_PT_02Character();
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	float GetHealth() const;
+	float GetMaxHealth() const;
+	void GetItem(AInventoryItem* NewItem);
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetWeapon(AC_BaseWeapon* BaseWeapon) override;
+	UFUNCTION(BlueprintCallable)
+	void AddHealth(int32 Value);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
+	FOnTookDamage OnTookDamage;
+	FOnDied OnDied;
+	UPROPERTY(BlueprintReadWrite)
+	bool bYouMustDieEffect;
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetCurrentHealth() const
+	{
+		return Health;
+	}
+	
+	int32 MaxHealth;
 
 protected:
 	void OnResetVR();
@@ -55,11 +86,16 @@ protected:
 	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 	UFUNCTION(BlueprintCallable)
 	void OnHit();
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION()
 	void Hit();
 	UFUNCTION()
 	void DropWeapon();
+	UFUNCTION()
+	void UseItem();
+	UFUNCTION()
+	void DropItem();
 
 	UFUNCTION()
 	void OnHeal();
@@ -86,6 +122,8 @@ protected:
 	UFUNCTION()
 	void PrintDiedStatus() const;
 
+	UPROPERTY(EditAnywhere,BlueprintReadWrite,Replicated)
+	int32 Health;
 	
 	FOnHealed OnHealed;
 	FOnActivatedHeal OnActivatedHeal;
@@ -94,35 +132,12 @@ protected:
 	FOnDeactivatePeriodicDamage OnDeactivatePeriodicDamage;
 	FTimerHandle HealTimeHandle;
 	FTimerHandle YouMustDieTimeHandle;
-
-	float MaxHealth;
-	float Health;
+	
 	float HealRate;
 	float HealForTik;
 	float Damage;
 	float YouMustDieDamageEffectRate;
 	
-
-public:
-	FOnTookDamage OnTookDamage;
-	FOnDied OnDied;
 	
-	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"))
-	UPlayerInventoryV2* Inventory;
-	
-	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly)
-	UWeapon* WeaponComponent;
-	
-	UPROPERTY(BlueprintReadWrite)
-	bool bYouMustDieEffect;
-	
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-	float GetHealth() const;
-	float GetMaxHealth() const;
-
-	UFUNCTION(BlueprintCallable)
-	virtual void SetWeapon(AC_BaseWeapon* BaseWeapon) override;
 };
 
