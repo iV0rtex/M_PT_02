@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "C_BaseBullet.h"
 #include "C_M_PT_02/WeaponReloadInterface.h"
 #include "C_M_PT_02/Weapon/C_BaseWeapon.h"
 #include "C_FireWeapon.generated.h"
@@ -39,6 +40,8 @@ protected:
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
 	UParticleSystem* ParticleSystem;
+	UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	TSubclassOf<AC_BaseBullet> Bullet;
 
 	UFUNCTION(Server,Unreliable)
 	void ServerUseReloadAmmo();
@@ -74,6 +77,8 @@ protected:
 
 public:
 	AC_FireWeapon();
+
+	virtual void BeginPlay() override;
 	
 	UFUNCTION(Server,Unreliable)
 	virtual void ServerInteractWeapon() override;
