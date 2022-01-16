@@ -70,6 +70,11 @@ public:
 	
 	int32 MaxHealth;
 
+	UC_WeaponManagerComponent* GetWeaponManager() const
+	{
+		return WeaponManagerComponent;
+	}
+
 protected:
 	void OnResetVR();
 	void MoveForward(float Value);

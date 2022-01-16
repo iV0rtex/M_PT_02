@@ -10,7 +10,7 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDetectedColor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDefaultColor);
-DECLARE_EVENT(ABasePawn,FOnTookDamage);
+DECLARE_EVENT(ABasePawn, FOnPawnTookDamage);
 DECLARE_EVENT(ABasePawn, FOnCameraDetected);
 DECLARE_EVENT(ABasePawn, FOnDetectionGone);
 
@@ -81,7 +81,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnDefaultColor OnDefaultColor;
 
-	FOnTookDamage OnTookDamage;
+	FOnPawnTookDamage OnTookDamage;
 
 	void Damage( float Damage);
 	virtual void CameraTryToDetect(AActor* Detector) override;

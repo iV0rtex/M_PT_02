@@ -31,7 +31,7 @@ protected:
 	int32 AmmoPerClip;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	int32 MaxAmmo;
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere,BlueprintReadWrite)
 	float ReloadDuration;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	float FireDuration;
