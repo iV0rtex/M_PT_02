@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "CharacterPet.generated.h"
 
-DECLARE_EVENT(ACharacterPet,FOnDestroy);
+DECLARE_EVENT(ACharacterPet,FOnDestroyPet);
 DECLARE_EVENT_OneParam(ACharacterPet,FOnDamage,float);
 
 UCLASS()
@@ -40,7 +40,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
-	FOnDestroy	OnDestroy;
+	FOnDestroyPet	OnDestroy;
 	FOnDamage	OnTookDamage;
 	
 };
