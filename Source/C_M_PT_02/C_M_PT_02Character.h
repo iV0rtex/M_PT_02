@@ -39,10 +39,14 @@ class AC_M_PT_02Character : public ACharacter,public IWeaponryInterface
 	class UC_WeaponManagerComponent* WeaponManagerComponent;
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
 	class UInventoryManagerComponent* InventoryManagerComponent;
+	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess= "true"))
+	class UPawnNoiseEmitterComponent* NoiseEmitterComponent;
+
 public:
 	AC_M_PT_02Character();
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE UPawnNoiseEmitterComponent* GetNoiseComp()const { return NoiseEmitterComponent; }
 
 	float GetHealth() const;
 	float GetMaxHealth() const;
