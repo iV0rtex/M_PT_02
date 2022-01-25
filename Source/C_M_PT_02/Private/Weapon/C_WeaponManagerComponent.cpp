@@ -4,6 +4,7 @@
 #include "Weapon/C_WeaponManagerComponent.h"
 
 #include "Components/BoxComponent.h"
+#include "Components/PawnNoiseEmitterComponent.h"
 #include "C_M_PT_02/C_M_PT_02Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
@@ -82,6 +83,12 @@ void UC_WeaponManagerComponent::InteractCurrentWeapon_Implementation()
 	{
 		return false;
 	}*///TODO: Fix it
+	AC_M_PT_02Character* Owner = Cast<AC_M_PT_02Character>(GetOwner());//TODO: Rewrite to the interface NoseMaker instead of AC_M_PT_02Character
+	if(Owner)
+	{
+		Owner->GetNoiseComp()->MakeNoise(Owner, 1, Owner->GetActorLocation());
+	}
+	
 	if(CurrentWeapon)
 	{
 		CurrentWeapon->ServerInteractWeapon();

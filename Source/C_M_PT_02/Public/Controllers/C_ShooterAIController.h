@@ -17,5 +17,8 @@ class C_M_PT_02_API AC_ShooterAIController : public AAIController
 	UPROPERTY(EditAnywhere)
 	class UBehaviorTree* AIBehavior;
 
+	virtual FGenericTeamId GetGenericTeamId() const override;
+public:
+	AC_ShooterAIController();
 	virtual void BeginPlay() override;
 };
