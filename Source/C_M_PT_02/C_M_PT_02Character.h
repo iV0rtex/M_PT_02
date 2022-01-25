@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "PlayerInventoryV2.h"
 #include "Weapon.h"
+#include "GameFramework/SaveGame.h"
 #include "Interface/WeaponryInterface.h"
 #include "C_M_PT_02Character.generated.h"
 
@@ -41,6 +42,18 @@ class AC_M_PT_02Character : public ACharacter,public IWeaponryInterface
 	class UInventoryManagerComponent* InventoryManagerComponent;
 	UPROPERTY(Category=Character, VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess= "true"))
 	class UPawnNoiseEmitterComponent* NoiseEmitterComponent;
+
+	UFUNCTION()
+	void FastSaveGame();
+	UFUNCTION()
+	void FastDownloadGame();
+	UFUNCTION()
+	void GameSaved(const FString &Section, const int32 Index, bool bResult);
+	UFUNCTION()
+	void GameDownloaded(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData);
+
+	UFUNCTION(Server,Reliable)
+	void ServerSetPlayerLocation(const FVector& NewLocation);
 
 public:
 	AC_M_PT_02Character();

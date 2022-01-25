@@ -17,6 +17,9 @@ public:
 	// Sets default values for this component's properties
 	UC_WeaponManagerComponent();
 
+	UFUNCTION()
+	void MakeNoise() const;
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

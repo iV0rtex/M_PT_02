@@ -8,6 +8,7 @@
 #include "C_M_PT_02/C_M_PT_02Character.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Net/UnrealNetwork.h"
+#include "Weapon/C_FireWeapon.h"
 
 // Sets default values for this component's properties
 UC_WeaponManagerComponent::UC_WeaponManagerComponent()
@@ -20,6 +21,15 @@ UC_WeaponManagerComponent::UC_WeaponManagerComponent()
 	// ...
 }
 
+void UC_WeaponManagerComponent::MakeNoise() const
+{
+	AC_M_PT_02Character* Owner = Cast<AC_M_PT_02Character>(GetOwner());//TODO: Rewrite to the interface NoseMaker instead of AC_M_PT_02Character
+	if(Owner)
+	{
+		Owner->GetNoiseComp()->MakeNoise(Owner, 1, Owner->GetActorLocation());
+	}
+}
+
 
 // Called when the game starts
 void UC_WeaponManagerComponent::BeginPlay()
@@ -29,8 +39,6 @@ void UC_WeaponManagerComponent::BeginPlay()
 	// ...
 	
 }
-
-
 // Called every frame
 void UC_WeaponManagerComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -47,12 +55,18 @@ void UC_WeaponManagerComponent::SetCurrentWeapon_Implementation(AC_BaseWeapon* N
 	}*///TODO: Fix it
 	if (!CurrentWeapon)
 	{
+		
 		CurrentWeapon = NewWeapon;
 		auto* Character = Cast<AC_M_PT_02Character>(GetOwner());
 		const FAttachmentTransformRules Rules = FAttachmentTransformRules::KeepRelativeTransform;
 		CurrentWeapon->AttachToActor(Character, Rules, FName(TEXT("SocketWeapon")));
 		CurrentWeapon->SetActorRelativeLocation(FVector{50,0,20});
 		CurrentWeapon->GetBoxComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		AC_FireWeapon * Weapon = Cast<AC_FireWeapon>(CurrentWeapon);
+		if(Weapon)
+		{
+			Weapon->OnFired.AddUFunction(this,"MakeNoise");
+		}
 	}
 }
 
@@ -64,6 +78,11 @@ void UC_WeaponManagerComponent::DropCurrentWeapon_Implementation()
 	}*///TODO: Fix it
 	if(CurrentWeapon)
 	{
+		AC_FireWeapon * Weapon = Cast<AC_FireWeapon>(CurrentWeapon);
+		if(Weapon)
+		{
+			Weapon->OnFired.Clear();
+		}
 		CurrentWeapon->SetOwner(nullptr);
 		const FDetachmentTransformRules Rules = FDetachmentTransformRules::KeepRelativeTransform;
 		CurrentWeapon->DetachFromActor(Rules);
@@ -83,11 +102,6 @@ void UC_WeaponManagerComponent::InteractCurrentWeapon_Implementation()
 	{
 		return false;
 	}*///TODO: Fix it
-	AC_M_PT_02Character* Owner = Cast<AC_M_PT_02Character>(GetOwner());//TODO: Rewrite to the interface NoseMaker instead of AC_M_PT_02Character
-	if(Owner)
-	{
-		Owner->GetNoiseComp()->MakeNoise(Owner, 1, Owner->GetActorLocation());
-	}
 	
 	if(CurrentWeapon)
 	{

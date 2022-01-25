@@ -3,16 +3,72 @@
 #include "GameplayDebuggerTypes.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "PlayerInventoryV2.h"
+#include "ShooterMode.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "Components/PawnNoiseEmitterComponent.h"
+#include "Core/C_FirstSaveGame.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Inventory/InventoryManagerComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/C_WeaponManagerComponent.h"
+
+void AC_M_PT_02Character::FastSaveGame()
+{
+	if (UC_FirstSaveGame* SaveGameInstance = Cast<UC_FirstSaveGame>(UGameplayStatics::CreateSaveGameObject(UC_FirstSaveGame::StaticClass())))
+	{
+		FAsyncSaveGameToSlotDelegate SavedDelegate;
+		SavedDelegate.BindUObject(this, &AC_M_PT_02Character::GameSaved);
+		
+		SaveGameInstance->PlayerHealth = GetHealth();
+		SaveGameInstance->PlayerPosition = GetActorLocation();
+		
+		UGameplayStatics::AsyncSaveGameToSlot(SaveGameInstance, TEXT("PlayerData"), 0, SavedDelegate);
+	}
+
+}
+
+void AC_M_PT_02Character::FastDownloadGame()
+{
+	FAsyncLoadGameFromSlotDelegate LoadedDelegate;
+	LoadedDelegate.BindUObject(this, &AC_M_PT_02Character::GameDownloaded);
+	UGameplayStatics::AsyncLoadGameFromSlot(TEXT("PlayerData"), 0, LoadedDelegate);
+}
+
+void AC_M_PT_02Character::GameSaved(const FString& Section, const int32 Index, bool bResult)
+{
+	if(bResult)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Game has been saved")));
+	}else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Save error occured")));
+	}
+}
+
+void AC_M_PT_02Character::GameDownloaded(const FString& SlotName, const int32 UserIndex, USaveGame* LoadedGameData)
+{
+	UC_FirstSaveGame * Data = Cast<UC_FirstSaveGame>(LoadedGameData);
+	if(Data)
+	{
+		Health = Data->PlayerHealth;
+		ServerSetPlayerLocation(Data->PlayerPosition);
+		
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Game has been loaded")));
+	}else
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Orange, FString::Printf(TEXT("Downloading error occured")));
+	}
+}
+
+void AC_M_PT_02Character::ServerSetPlayerLocation_Implementation(const FVector& NewLocation)
+{
+	SetActorLocation(NewLocation);
+}
 
 AC_M_PT_02Character::AC_M_PT_02Character()
 {
@@ -85,6 +141,8 @@ void AC_M_PT_02Character::SetupPlayerInputComponent(class UInputComponent* Playe
 	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &AC_M_PT_02Character::DropWeapon);
 	PlayerInputComponent->BindAction("UseItem", IE_Pressed, this, &AC_M_PT_02Character::UseItem);
 	PlayerInputComponent->BindAction("DropItem", IE_Pressed, this, &AC_M_PT_02Character::DropItem);
+	PlayerInputComponent->BindAction("FastSaveGame", IE_Pressed, this, &AC_M_PT_02Character::FastSaveGame);
+	PlayerInputComponent->BindAction("FastDownloadGame", IE_Pressed, this, &AC_M_PT_02Character::FastDownloadGame);
 }
 
 void AC_M_PT_02Character::BeginPlay()
@@ -108,6 +166,8 @@ void AC_M_PT_02Character::BeginPlay()
 	OnDeactivatedHeal.AddUFunction(this,"PrintDeactivateHeal");
 	OnActivatedPeriodicDamage.AddUFunction(this,"PrintActivatePeriodicalDamage");
 	OnDeactivatePeriodicDamage.AddUFunction(this,"PrintDeactivatePeriodicalDamage");
+
+	auto* Settings = GEngine->GetGameUserSettings();
 
 }
 

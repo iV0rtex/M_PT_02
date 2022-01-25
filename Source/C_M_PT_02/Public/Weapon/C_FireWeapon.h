@@ -13,7 +13,7 @@ DECLARE_EVENT(AC_FireWeapon, FOnStartReload);
 DECLARE_EVENT(AC_FireWeapon, FOnFired);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FInteractWeaponMulticast);
 
-UCLASS()
+UCLASS(Config=Game,defaultconfig)
 class C_M_PT_02_API AC_FireWeapon : public AC_BaseWeapon,public IWeaponReloadInterface
 {
 	GENERATED_BODY()
@@ -25,15 +25,15 @@ class C_M_PT_02_API AC_FireWeapon : public AC_BaseWeapon,public IWeaponReloadInt
 	
 
 protected:
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(Config,VisibleAnywhere,BlueprintReadOnly)
 	int32 Range;
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(Config,VisibleAnywhere,BlueprintReadOnly)
 	int32 AmmoPerClip;
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(Config,VisibleAnywhere,BlueprintReadOnly)
 	int32 MaxAmmo;
-	UPROPERTY(VisibleAnywhere,BlueprintReadWrite)
+	UPROPERTY(Config,VisibleAnywhere,BlueprintReadWrite)
 	float ReloadDuration;
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	UPROPERTY(Config,VisibleAnywhere,BlueprintReadOnly)
 	float FireDuration;
 	UPROPERTY(BlueprintAssignable)
 	FInteractWeaponMulticast OnInteractWeaponMulticast;
@@ -59,15 +59,14 @@ protected:
 	UFUNCTION(NetMulticast,Unreliable)
 	void FireEffectMulticast();
 	
-	UPROPERTY()
+	UPROPERTY(Config)
 	int32 CurrentAmmo;
-	UPROPERTY()
+	UPROPERTY(Config)
 	int32 CurrentAmmoInClip;
 	UPROPERTY()
 	bool bIsReloading;
 	bool bCanFire;
 	FTimerHandle FireTimeHandle;
-	FOnFired OnFired;
 	
 	virtual bool CanReload() override;
 	virtual bool CanFire() const;
@@ -91,4 +90,6 @@ public:
 	void PrintEndReloadAction() const;
 	UFUNCTION()
 	void PrintFireAction() const;
+
+	FOnFired OnFired;
 };
