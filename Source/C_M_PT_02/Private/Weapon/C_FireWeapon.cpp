@@ -9,15 +9,8 @@
 
 AC_FireWeapon::AC_FireWeapon()
 {
-	Range = 10000;
-	MaxAmmo = 20;
-	AmmoPerClip = 5;
-	ReloadDuration = 2.f;
-	CurrentAmmo = MaxAmmo;
-	CurrentAmmoInClip = AmmoPerClip;
 	bIsReloading = false;
 	bCanFire = true;
-	FireDuration = .6f;
 }
 
 void AC_FireWeapon::BeginPlay()

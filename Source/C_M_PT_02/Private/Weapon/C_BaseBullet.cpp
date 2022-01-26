@@ -36,7 +36,7 @@ AC_BaseBullet::AC_BaseBullet()
 	{
 		ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 		ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
-		ProjectileMovementComponent->InitialSpeed = 1000.0f;
+		ProjectileMovementComponent->InitialSpeed = 3000.0f;
 		ProjectileMovementComponent->MaxSpeed = 3000.0f;
 		ProjectileMovementComponent->bRotationFollowsVelocity = true;
 		ProjectileMovementComponent->bShouldBounce = true;
