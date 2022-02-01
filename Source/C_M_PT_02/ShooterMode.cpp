@@ -31,6 +31,8 @@ void AShooterMode::BeginPlay()
 
 	GenerateCubes();
 	GetWorld()->GetTimerManager().SetTimer(GeneratedActorsLifeTimeHandle,this,&ThisClass::DestroyCubes,GeneratedActorsLifeTime,false);
+
+	ChangeMenuWidget(StartingWidgetClass);
 	
 }
 
@@ -102,4 +104,21 @@ FVector AShooterMode::GetRandomPosition() const
 void AShooterMode::OnTurretKilled()
 {
 	Scores += 50.f;
+}
+
+void AShooterMode::ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidgetClass)
+{
+	if(CurrentWidget != nullptr)
+	{
+		CurrentWidget->RemoveFromViewport();
+		CurrentWidget = nullptr;
+	}
+	if(NewWidgetClass != nullptr)
+	{
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), NewWidgetClass);
+		if(CurrentWidget != nullptr)
+		{
+			CurrentWidget->AddToViewport();
+		}
+	}
 }
