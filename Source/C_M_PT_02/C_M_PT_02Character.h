@@ -7,6 +7,7 @@
 #include "PlayerInventoryV2.h"
 #include "Weapon.h"
 #include "GameFramework/SaveGame.h"
+#include "Interface/HittableInterface.h"
 #include "Interface/WeaponryInterface.h"
 #include "C_M_PT_02Character.generated.h"
 
@@ -20,7 +21,7 @@ DECLARE_EVENT(AC_M_PT_02Character,FOnActivatedPeriodicDamage);
 DECLARE_EVENT(AC_M_PT_02Character,FOnDeactivatePeriodicDamage);
 
 UCLASS(config=Game)
-class AC_M_PT_02Character : public ACharacter,public IWeaponryInterface
+class AC_M_PT_02Character : public ACharacter,public IWeaponryInterface, public IHittableInterface
 {
 	GENERATED_BODY()
 	
@@ -107,7 +108,7 @@ protected:
 	UFUNCTION()
 	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 	UFUNCTION(BlueprintCallable)
-	void OnHit();
+	virtual void OnHit() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 	UFUNCTION()

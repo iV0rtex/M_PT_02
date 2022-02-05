@@ -35,12 +35,28 @@ protected:
 	UPROPERTY()
 	TArray<AActorWithStatus*> GeneratedActors;
 
+	//PT_21 task part. 4 soft assets to load
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UObject> FirstSyncSoftObject;
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UObject> SecondSyncSoftObject;
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UObject> ThirdAsyncSoftObject;
+	UPROPERTY(EditAnywhere)
+	TSoftObjectPtr<UObject> ForthAsyncSoftObject;
+	///////
+
 	ATargetPoint * GetFirstTargetPoint() const; 
 	ATargetPoint * GetSecondTargetPoint() const;
 	ATargetPoint * GetTargetPointByTagName(FName Name) const;
 	FVector GetRandomPosition() const;
 	FTimerHandle GeneratedActorsLifeTimeHandle;
 
+	void AssetsLoading();
+	UFUNCTION()
+	void AssetsLoaded();
+
+	
 public:
 	float Scores;
 	
