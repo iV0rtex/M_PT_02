@@ -112,6 +112,8 @@ void AShooterMode::AssetsLoading()
 	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
 	AsyncItemsToStream.Add(ThirdAsyncSoftObject.ToSoftObjectPath());
 	AsyncItemsToStream.Add(ForthAsyncSoftObject.ToSoftObjectPath());
+	SyncItemsToStream.Add(FirstSyncSoftObject.ToSoftObjectPath());
+	SyncItemsToStream.Add(SecondSyncSoftObject.ToSoftObjectPath());
 
 	Streamable.RequestAsyncLoad(AsyncItemsToStream, FStreamableDelegate::CreateUObject(this, &AShooterMode::AssetsLoaded));
 
