@@ -4,6 +4,8 @@
 #include "ShooterMode.h"
 
 #include "Turret.h"
+#include "Engine/AssetManager.h"
+#include "Engine/StreamableManager.h"
 #include "Engine/TargetPoint.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -33,6 +35,8 @@ void AShooterMode::BeginPlay()
 	GetWorld()->GetTimerManager().SetTimer(GeneratedActorsLifeTimeHandle,this,&ThisClass::DestroyCubes,GeneratedActorsLifeTime,false);
 
 	ChangeMenuWidget(StartingWidgetClass);
+
+	AssetsLoading();
 	
 }
 
@@ -100,6 +104,27 @@ FVector AShooterMode::GetRandomPosition() const
 	return Position;
 }
 
+void AShooterMode::AssetsLoading()
+{
+	TArray<FSoftObjectPath> AsyncItemsToStream;
+	TArray<FSoftObjectPath> SyncItemsToStream;
+	
+	FStreamableManager& Streamable = UAssetManager::GetStreamableManager();
+	AsyncItemsToStream.Add(ThirdAsyncSoftObject.ToSoftObjectPath());
+	AsyncItemsToStream.Add(ForthAsyncSoftObject.ToSoftObjectPath());
+	SyncItemsToStream.Add(FirstSyncSoftObject.ToSoftObjectPath());
+	SyncItemsToStream.Add(SecondSyncSoftObject.ToSoftObjectPath());
+
+	Streamable.RequestAsyncLoad(AsyncItemsToStream, FStreamableDelegate::CreateUObject(this, &AShooterMode::AssetsLoaded));
+
+	Streamable.RequestSyncLoad(SyncItemsToStream);
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("Sync Asset Loaded"));
+}
+
+void AShooterMode::AssetsLoaded()
+{
+	GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Red, TEXT("ASync Asset Loaded"));
+}
 
 void AShooterMode::OnTurretKilled()
 {
