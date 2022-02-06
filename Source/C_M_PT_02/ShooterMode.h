@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "Blueprint/UserWidget.h"
 #include "CoreMinimal.h"
 #include "ActorWithStatus.h"
 #include "Engine/TargetPoint.h"
@@ -25,6 +26,12 @@ protected:
 	void GenerateCubes();
 	void DestroyCubes();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="UMG Game")
+	TSubclassOf<UUserWidget> StartingWidgetClass;
+
+	UPROPERTY()
+	UUserWidget* CurrentWidget;
+
 	UPROPERTY()
 	TArray<AActorWithStatus*> GeneratedActors;
 
@@ -39,6 +46,9 @@ public:
 	
 	UFUNCTION()
 	void OnTurretKilled();
+
+	UFUNCTION(BlueprintCallable, Category="UGM Game")
+	void ChangeMenuWidget(TSubclassOf<UUserWidget> NewWidgetClass);
 
 	UPROPERTY(EditAnywhere, meta = (ClampMin = "1", ClampMax = "100", UIMin = "1", UIMax = "100"))
 	int32 GeneratedCubeAmount;

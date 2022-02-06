@@ -16,6 +16,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Weapon/C_WeaponManagerComponent.h"
+#include "Blueprint/UserWidget.h"
 
 void AC_M_PT_02Character::FastSaveGame()
 {
