@@ -199,18 +199,25 @@ void AC_M_PT_02Character::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 void AC_M_PT_02Character::Hit()
 {
-	Health -= Damage;
-	if(Health < 0)
+	AsyncTask(ENamedThreads::AnyHiPriThreadNormalTask, [this]
 	{
-		Health = 0;
-	}
-	if(Health == 0 && OnDied.IsBound())
-	{
-		OnDied.Broadcast();
-	}else if(OnTookDamage.IsBound())
-	{
-		OnTookDamage.Broadcast(Damage);
-	}
+		int32 NewHealth = Health - Damage;
+		if(NewHealth < 0)
+		{
+			NewHealth = 0;
+		}
+		AsyncTask(ENamedThreads::GameThread, [this,NewHealth]
+		{
+			Health = NewHealth;
+			if(Health == 0 && OnDied.IsBound())
+			{
+				OnDied.Broadcast();
+			}else if(OnTookDamage.IsBound())
+			{
+				OnTookDamage.Broadcast(Damage);
+			}
+		});
+	});
 }
 
 void AC_M_PT_02Character::DropWeapon()
